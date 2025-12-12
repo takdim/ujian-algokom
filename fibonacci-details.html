@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fibonacci Methods - Detailed Explanation</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .back-button {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-bottom: 20px;
+        display: inline-block;
+        text-decoration: none;
+        transition: all 0.3s;
+      }
+
+      .back-button:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+      }
+
+      h1 {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .method-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .method-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid;
+      }
+
+      .method-title {
+        font-size: 1.8em;
+        font-weight: bold;
+      }
+
+      .complexity-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.9em;
+      }
+
+      .section {
+        margin: 25px 0;
+      }
+
+      .section-title {
+        font-size: 1.3em;
+        margin-bottom: 15px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .code-block {
+        background: #f5f5f5;
+        border-left: 4px solid;
+        padding: 20px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        overflow-x: auto;
+        line-height: 1.6;
+      }
+
+      .step-by-step {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+      }
+
+      .step {
+        margin: 10px 0;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+        border-left: 3px solid;
+      }
+
+      .pros-cons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 15px;
+      }
+
+      .pros,
+      .cons {
+        padding: 15px;
+        border-radius: 8px;
+      }
+
+      .pros {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+      }
+
+      .cons {
+        background: #f8d7da;
+        border-left: 4px solid #dc3545;
+      }
+
+      .info-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .info-list li {
+        margin: 8px 0;
+        padding-left: 25px;
+        position: relative;
+      }
+
+      .info-list li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+      }
+
+      .pros .info-list li:before {
+        color: #28a745;
+      }
+
+      .cons .info-list li:before {
+        content: "✗";
+        color: #dc3545;
+      }
+
+      .visual-demo {
+        background: #fff3e0;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .comparison-table th {
+        background: #667eea;
+        color: white;
+        font-weight: bold;
+      }
+
+      .comparison-table tr:hover {
+        background: #f5f5f5;
+      }
+
+      /* Color schemes for each method */
+      .recursive {
+        border-color: #ffc107;
+      }
+      .recursive .method-title {
+        color: #f57f17;
+      }
+      .recursive .complexity-badge {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .recursive .code-block {
+        border-left-color: #ffc107;
+      }
+      .recursive .step {
+        border-left-color: #ffc107;
+      }
+
+      .dp {
+        border-color: #28a745;
+      }
+      .dp .method-title {
+        color: #155724;
+      }
+      .dp .complexity-badge {
+        background: #d4edda;
+        color: #155724;
+      }
+      .dp .code-block {
+        border-left-color: #28a745;
+      }
+      .dp .step {
+        border-left-color: #28a745;
+      }
+
+      .optimized {
+        border-color: #17a2b8;
+      }
+      .optimized .method-title {
+        color: #0c5460;
+      }
+      .optimized .complexity-badge {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+      .optimized .code-block {
+        border-left-color: #17a2b8;
+      }
+      .optimized .step {
+        border-left-color: #17a2b8;
+      }
+
+      .matrix {
+        border-color: #7b42bc;
+      }
+      .matrix .method-title {
+        color: #4a148c;
+      }
+      .matrix .complexity-badge {
+        background: #e7d4f5;
+        color: #4a148c;
+      }
+      .matrix .code-block {
+        border-left-color: #7b42bc;
+      }
+      .matrix .step {
+        border-left-color: #7b42bc;
+      }
+
+      @media (max-width: 768px) {
+        .pros-cons {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="visualisation.html" class="back-button">← Back to Demo</a>
+
+      <h1>📚 Fibonacci Methods - Deep Dive</h1>
+
+      <!-- RECURSIVE METHOD -->
+      <div class="method-card recursive">
+        <div class="method-header">
+          <div class="method-title">1️⃣ Recursive (Naive) Method</div>
+          <div class="complexity-badge">O(2^n) Time</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">💡 Konsep Dasar</div>
+          <p style="line-height: 1.8; color: #555">
+            Metode paling sederhana yang mengikuti definisi matematika Fibonacci
+            secara langsung. Setiap pemanggilan fungsi memanggil dirinya sendiri
+            2 kali untuk menghitung F(n-1) dan F(n-2).
+          </p>
+        </div>
+
+        <div class="section">
+          <div class="section-title">📝 Pseudocode</div>
+          <div class="code-block">
+            <strong>function</strong> fibonacci(n): <strong>if</strong> n ≤ 1:
+            <strong>return</strong> n <strong>return</strong> fibonacci(n-1) +
+            fibonacci(n-2)
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🔍 Step-by-Step Example: F(5)</div>
+          <div class="visual-demo">
+            <div class="step-by-step">
+              <div class="step"><strong>F(5)</strong> = F(4) + F(3)</div>
+              <div class="step" style="margin-left: 20px">
+                <strong>F(4)</strong> = F(3) + F(2) → F(3) dihitung lagi! ❌
+              </div>
+              <div class="step" style="margin-left: 40px">
+                <strong>F(3)</strong> = F(2) + F(1)
+              </div>
+              <div class="step" style="margin-left: 60px">
+                <strong>F(2)</strong> = F(1) + F(0) = 1 + 0 = 1
+              </div>
+              <div class="step" style="margin-left: 20px">
+                <strong>F(3)</strong> = F(2) + F(1) → F(2) dihitung lagi! ❌
+              </div>
+              <p style="margin-top: 15px; color: #d32f2f; font-weight: bold">
+                ⚠️ Total Pemanggilan Fungsi: 15 kali untuk F(5)!<br />
+                Banyak perhitungan yang sama diulang berkali-kali (redundant).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">⚡ Kompleksitas</div>
+          <table class="comparison-table">
+            <tr>
+              <th>Aspek</th>
+              <th>Kompleksitas</th>
+              <th>Penjelasan</th>
+            </tr>
+            <tr>
+              <td><strong>Time</strong></td>
+              <td style="color: #d32f2f; font-weight: bold">O(2^n)</td>
+              <td>Eksponensial! Setiap level membuat 2 cabang baru</td>
+            </tr>
+            <tr>
+              <td><strong>Space</strong></td>
+              <td style="color: #ffa726">O(n)</td>
+              <td>Call stack depth maksimal = n</td>
+            </tr>
+            <tr>
+              <td><strong>Praktis untuk</strong></td>
+              <td colspan="2">n ≤ 40 (lebih dari itu sangat lambat)</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="section">
+          <div class="section-title">⚖️ Kelebihan & Kekurangan</div>
+          <div class="pros-cons">
+            <div class="pros">
+              <h4>✅ Kelebihan</h4>
+              <ul class="info-list">
+                <li>Sangat mudah dipahami</li>
+                <li>Kode sangat singkat (3 baris)</li>
+                <li>Sesuai definisi matematika</li>
+                <li>Bagus untuk pembelajaran konsep rekursi</li>
+              </ul>
+            </div>
+            <div class="cons">
+              <h4>❌ Kekurangan</h4>
+              <ul class="info-list">
+                <li>Sangat lambat untuk n besar</li>
+                <li>Banyak perhitungan redundan</li>
+                <li>Stack overflow risk untuk n sangat besar</li>
+                <li>Tidak praktis untuk produksi</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🎯 Use Case</div>
+          <p
+            style="
+              background: #e3f2fd;
+              padding: 15px;
+              border-radius: 8px;
+              line-height: 1.8;
+            "
+          >
+            <strong>Kapan menggunakan:</strong> Hanya untuk pembelajaran,
+            demonstrasi konsep rekursi, atau n sangat kecil (< 30).<br />
+            <strong>Jangan gunakan:</strong> Untuk aplikasi nyata atau n > 35.
+          </p>
+        </div>
+      </div>
+
+      <!-- DYNAMIC PROGRAMMING METHOD -->
+      <div class="method-card dp">
+        <div class="method-header">
+          <div class="method-title">2️⃣ Dynamic Programming (Bottom-Up)</div>
+          <div class="complexity-badge">O(n) Time, O(n) Space</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">💡 Konsep Dasar</div>
+          <p style="line-height: 1.8; color: #555">
+            Menyimpan semua nilai Fibonacci dari 0 hingga n dalam sebuah array.
+            Setiap nilai dihitung HANYA SEKALI dan disimpan untuk digunakan
+            kembali. Pendekatan <strong>bottom-up</strong>: mulai dari F(0),
+            F(1), lalu naik ke F(n).
+          </p>
+        </div>
+
+        <div class="section">
+          <div class="section-title">📝 Pseudocode</div>
+          <div class="code-block">
+            <strong>function</strong> fibonacci(n): <strong>if</strong> n ≤ 1:
+            <strong>return</strong> n
+
+            <span style="color: #28a745"
+              >// Buat array untuk menyimpan hasil</span
+            >
+            dp = [0, 1]
+
+            <strong>for</strong> i from 2 to n:
+            <span style="color: #28a745">// F(i) = F(i-1) + F(i-2)</span>
+            dp[i] = dp[i-1] + dp[i-2]
+
+            <strong>return</strong> dp[n]
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🔍 Step-by-Step Example: F(7)</div>
+          <div class="visual-demo">
+            <div class="step-by-step">
+              <div class="step"><strong>Inisialisasi:</strong> dp = [0, 1]</div>
+              <div class="step">
+                <strong>i=2:</strong> dp[2] = dp[1] + dp[0] = 1 + 0 = 1 → [0, 1,
+                <strong>1</strong>]
+              </div>
+              <div class="step">
+                <strong>i=3:</strong> dp[3] = dp[2] + dp[1] = 1 + 1 = 2 → [0, 1,
+                1, <strong>2</strong>]
+              </div>
+              <div class="step">
+                <strong>i=4:</strong> dp[4] = dp[3] + dp[2] = 2 + 1 = 3 → [0, 1,
+                1, 2, <strong>3</strong>]
+              </div>
+              <div class="step">
+                <strong>i=5:</strong> dp[5] = dp[4] + dp[3] = 3 + 2 = 5 → [0, 1,
+                1, 2, 3, <strong>5</strong>]
+              </div>
+              <div class="step">
+                <strong>i=6:</strong> dp[6] = dp[5] + dp[4] = 5 + 3 = 8 → [0, 1,
+                1, 2, 3, 5, <strong>8</strong>]
+              </div>
+              <div class="step">
+                <strong>i=7:</strong> dp[7] = dp[6] + dp[5] = 8 + 5 = 13 → [0,
+                1, 1, 2, 3, 5, 8, <strong>13</strong>]
+              </div>
+              <p style="margin-top: 15px; color: #28a745; font-weight: bold">
+                ✅ Total Operasi: 7 iterasi saja!<br />
+                Tidak ada perhitungan redundan - setiap nilai dihitung tepat 1
+                kali.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">⚡ Kompleksitas</div>
+          <table class="comparison-table">
+            <tr>
+              <th>Aspek</th>
+              <th>Kompleksitas</th>
+              <th>Penjelasan</th>
+            </tr>
+            <tr>
+              <td><strong>Time</strong></td>
+              <td style="color: #28a745; font-weight: bold">O(n)</td>
+              <td>Linear! Loop dari 2 sampai n</td>
+            </tr>
+            <tr>
+              <td><strong>Space</strong></td>
+              <td style="color: #ffa726">O(n)</td>
+              <td>Array menyimpan n+1 elemen</td>
+            </tr>
+            <tr>
+              <td><strong>Praktis untuk</strong></td>
+              <td colspan="2">n ≤ 10,000+ (sangat cepat)</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="section">
+          <div class="section-title">⚖️ Kelebihan & Kekurangan</div>
+          <div class="pros-cons">
+            <div class="pros">
+              <h4>✅ Kelebihan</h4>
+              <ul class="info-list">
+                <li>Sangat cepat - O(n) time</li>
+                <li>Mudah dipahami (iterative)</li>
+                <li>Bisa akses semua nilai kapan saja</li>
+                <li>Bagus untuk print semua sequence</li>
+                <li>Praktis untuk produksi</li>
+              </ul>
+            </div>
+            <div class="cons">
+              <h4>❌ Kekurangan</h4>
+              <ul class="info-list">
+                <li>Butuh O(n) memory</li>
+                <li>Memory waste jika hanya butuh F(n)</li>
+                <li>Tidak optimal untuk n sangat besar</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🎯 Use Case</div>
+          <p
+            style="
+              background: #e3f2fd;
+              padding: 15px;
+              border-radius: 8px;
+              line-height: 1.8;
+            "
+          >
+            <strong>Kapan menggunakan:</strong> Ketika butuh semua nilai
+            Fibonacci dari 0 sampai n, atau butuh print sequence.<br />
+            <strong>Perfect untuk:</strong> Aplikasi yang perlu menyimpan
+            history, visualisasi sequence, atau lookup table.
+          </p>
+        </div>
+      </div>
+
+      <!-- SPACE OPTIMIZED METHOD -->
+      <div class="method-card optimized">
+        <div class="method-header">
+          <div class="method-title">3️⃣ Space Optimized (Iterative)</div>
+          <div class="complexity-badge">O(n) Time, O(1) Space</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">💡 Konsep Dasar</div>
+          <p style="line-height: 1.8; color: #555">
+            Optimisasi dari DP dengan observasi: untuk menghitung F(n), kita
+            hanya butuh F(n-1) dan F(n-2). Tidak perlu simpan SEMUA nilai! Cukup
+            simpan <strong>2 variabel terakhir</strong> saja. Ini adalah
+            <strong>trade-off</strong>: korbankan akses ke semua nilai, dapat
+            memory efficiency.
+          </p>
+        </div>
+
+        <div class="section">
+          <div class="section-title">📝 Pseudocode</div>
+          <div class="code-block">
+            <strong>function</strong> fibonacci(n): <strong>if</strong> n ≤ 1:
+            <strong>return</strong> n
+
+            <span style="color: #17a2b8">// Hanya 2 variabel!</span>
+            prev = 0 curr = 1
+
+            <strong>for</strong> i from 2 to n:
+            <span style="color: #17a2b8">// Hitung nilai baru</span>
+            next = prev + curr
+            <span style="color: #17a2b8">// Shift: prev → curr → next</span>
+            prev = curr curr = next
+
+            <strong>return</strong> curr
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🔍 Step-by-Step Example: F(7)</div>
+          <div class="visual-demo">
+            <div class="step-by-step">
+              <div class="step">
+                <strong>Inisialisasi:</strong> prev=0, curr=1
+              </div>
+              <div class="step">
+                <strong>i=2:</strong> next = 0+1=1 → prev=1, curr=<strong
+                  >1</strong
+                >
+              </div>
+              <div class="step">
+                <strong>i=3:</strong> next = 1+1=2 → prev=1, curr=<strong
+                  >2</strong
+                >
+              </div>
+              <div class="step">
+                <strong>i=4:</strong> next = 1+2=3 → prev=2, curr=<strong
+                  >3</strong
+                >
+              </div>
+              <div class="step">
+                <strong>i=5:</strong> next = 2+3=5 → prev=3, curr=<strong
+                  >5</strong
+                >
+              </div>
+              <div class="step">
+                <strong>i=6:</strong> next = 3+5=8 → prev=5, curr=<strong
+                  >8</strong
+                >
+              </div>
+              <div class="step">
+                <strong>i=7:</strong> next = 5+8=13 → prev=8, curr=<strong
+                  >13</strong
+                >
+              </div>
+              <p style="margin-top: 15px; color: #17a2b8; font-weight: bold">
+                ✅ Total Memory: HANYA 2 variabel (prev & curr)!<br />
+                Speed sama dengan DP, tapi memory jauh lebih hemat.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">⚡ Kompleksitas</div>
+          <table class="comparison-table">
+            <tr>
+              <th>Aspek</th>
+              <th>Kompleksitas</th>
+              <th>Penjelasan</th>
+            </tr>
+            <tr>
+              <td><strong>Time</strong></td>
+              <td style="color: #28a745; font-weight: bold">O(n)</td>
+              <td>Linear - sama dengan DP</td>
+            </tr>
+            <tr>
+              <td><strong>Space</strong></td>
+              <td style="color: #28a745; font-weight: bold">O(1)</td>
+              <td>Constant! Hanya 2-3 variabel</td>
+            </tr>
+            <tr>
+              <td><strong>Praktis untuk</strong></td>
+              <td colspan="2">n ≤ 1,000,000+ (super efficient)</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="section">
+          <div class="section-title">⚖️ Kelebihan & Kekurangan</div>
+          <div class="pros-cons">
+            <div class="pros">
+              <h4>✅ Kelebihan</h4>
+              <ul class="info-list">
+                <li>Paling hemat memory - O(1)!</li>
+                <li>Tetap cepat - O(n) time</li>
+                <li>Simple & elegant</li>
+                <li>Perfect untuk production</li>
+                <li>Bisa handle n sangat besar</li>
+              </ul>
+            </div>
+            <div class="cons">
+              <h4>❌ Kekurangan</h4>
+              <ul class="info-list">
+                <li>Hanya dapat nilai akhir F(n)</li>
+                <li>Tidak bisa akses F(i) lainnya</li>
+                <li>Tidak cocok jika butuh sequence</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🎯 Use Case</div>
+          <p
+            style="
+              background: #e3f2fd;
+              padding: 15px;
+              border-radius: 8px;
+              line-height: 1.8;
+            "
+          >
+            <strong>Kapan menggunakan:</strong> Ketika hanya butuh F(n) saja
+            (tidak butuh semua sequence).<br />
+            <strong>Perfect untuk:</strong> Production code, embedded systems,
+            atau ketika memory sangat terbatas.<br />
+            <strong>Best Choice:</strong> Untuk sebagian besar aplikasi
+            real-world!
+          </p>
+        </div>
+      </div>
+
+      <!-- MATRIX EXPONENTIATION METHOD -->
+      <div class="method-card matrix">
+        <div class="method-header">
+          <div class="method-title">4️⃣ Matrix Exponentiation</div>
+          <div class="complexity-badge">O(log n) Time</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">💡 Konsep Dasar</div>
+          <p style="line-height: 1.8; color: #555">
+            Metode paling <strong>advanced</strong> yang menggunakan aljabar
+            linear! Berdasarkan fakta bahwa: [F(n+1), F(n)] = [F(1), F(0)] ×
+            [[1,1],[1,0]]^n<br />
+            Dengan <strong>fast matrix exponentiation</strong> (divide &
+            conquer), kita bisa hitung pangkat dalam O(log n)!
+          </p>
+        </div>
+
+        <div class="section">
+          <div class="section-title">📝 Pseudocode</div>
+          <div class="code-block">
+            <strong>function</strong> fibonacci(n): <strong>if</strong> n ≤ 1:
+            <strong>return</strong> n
+
+            <span style="color: #7b42bc">// Base matrix untuk Fibonacci</span>
+            baseMatrix = [[1, 1], [1, 0]]
+
+            <span style="color: #7b42bc"
+              >// Hitung matrix^n dengan fast exponentiation</span
+            >
+            resultMatrix = <strong>matrixPower</strong>(baseMatrix, n)
+
+            <strong>return</strong> resultMatrix[0][1]
+
+            <strong>function</strong> matrixPower(M, n): <strong>if</strong> n
+            == 1: <strong>return</strong> M
+
+            <strong>if</strong> n is even:
+            <span style="color: #7b42bc">// M^n = (M^(n/2))^2</span>
+            half = <strong>matrixPower</strong>(M, n/2) <strong>return</strong>
+            <strong>matrixMultiply</strong>(half, half) <strong>else</strong>:
+            <span style="color: #7b42bc">// M^n = M × M^(n-1)</span>
+            <strong>return</strong> <strong>matrixMultiply</strong>(M,
+            <strong>matrixPower</strong>(M, n-1))
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🔍 Step-by-Step Example: F(6)</div>
+          <div class="visual-demo">
+            <div class="step-by-step">
+              <div class="step">
+                <strong>Target:</strong> Hitung [[1,1],[1,0]]^6
+              </div>
+              <div class="step">
+                <strong>Langkah 1:</strong> M^6 = (M^3)^2 → Hitung M^3 dulu
+              </div>
+              <div class="step" style="margin-left: 20px">
+                <strong>M^3 = M × M^2</strong> → Hitung M^2 dulu
+              </div>
+              <div class="step" style="margin-left: 40px">
+                <strong>M^2 = M × M</strong> = [[1,1],[1,0]] × [[1,1],[1,0]] =
+                [[2,1],[1,1]]
+              </div>
+              <div class="step" style="margin-left: 20px">
+                <strong>M^3 = M^2 × M</strong> = [[2,1],[1,1]] × [[1,1],[1,0]] =
+                [[3,2],[2,1]]
+              </div>
+              <div class="step">
+                <strong>Langkah 2:</strong> M^6 = M^3 × M^3 = [[3,2],[2,1]] ×
+                [[3,2],[2,1]] = [[13,8],[8,5]]
+              </div>
+              <div class="step">
+                <strong>Hasil:</strong> F(6) = resultMatrix[0][1] =
+                <strong>8</strong> ✅
+              </div>
+              <p style="margin-top: 15px; color: #7b42bc; font-weight: bold">
+                ✅ Total Perkalian Matrix: Hanya 3 kali untuk F(6)!<br />
+                Untuk F(1000): Hanya ~10 perkalian matrix (log₂ 1000 ≈ 10)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🧮 Kenapa O(log n)?</div>
+          <div
+            style="
+              background: #f3e5f5;
+              padding: 15px;
+              border-radius: 8px;
+              border-left: 4px solid #7b42bc;
+            "
+          >
+            <p style="line-height: 1.8; margin-bottom: 10px">
+              Fast exponentiation bekerja dengan
+              <strong>membagi eksponen jadi 2</strong> setiap kali:
+            </p>
+            <ul style="margin-left: 20px; line-height: 1.8">
+              <li>M^32 = (M^16)^2 = ((M^8)^2)^2 = ...</li>
+              <li>Pangkat 32 hanya butuh 5 langkah (2^5 = 32)</li>
+              <li>Pangkat 1024 hanya butuh 10 langkah (2^10 = 1024)</li>
+              <li>Secara umum: <strong>n langkah → log₂ n operasi</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">⚡ Kompleksitas</div>
+          <table class="comparison-table">
+            <tr>
+              <th>Aspek</th>
+              <th>Kompleksitas</th>
+              <th>Penjelasan</th>
+            </tr>
+            <tr>
+              <td><strong>Time</strong></td>
+              <td style="color: #7b42bc; font-weight: bold">O(log n)</td>
+              <td>Logaritmik! Tercepat secara asimptotik</td>
+            </tr>
+            <tr>
+              <td><strong>Space</strong></td>
+              <td style="color: #ffa726">O(log n)</td>
+              <td>Recursion call stack depth = log n</td>
+            </tr>
+            <tr>
+              <td><strong>Praktis untuk</strong></td>
+              <td colspan="2">n sangat besar (10^6, 10^9, dst)</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="section">
+          <div class="section-title">⚖️ Kelebihan & Kekurangan</div>
+          <div class="pros-cons">
+            <div class="pros">
+              <h4>✅ Kelebihan</h4>
+              <ul class="info-list">
+                <li>TERCEPAT untuk n besar - O(log n)!</li>
+                <li>Elegant secara matematis</li>
+                <li>Bisa handle n = 10^9+</li>
+                <li>Impressive untuk competitive programming</li>
+              </ul>
+            </div>
+            <div class="cons">
+              <h4>❌ Kekurangan</h4>
+              <ul class="info-list">
+                <li>Kompleks & sulit dipahami</li>
+                <li>Butuh pemahaman aljabar linear</li>
+                <li>Overhead untuk n kecil (< 1000)</li>
+                <li>Tidak intuitive untuk pemula</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🎯 Use Case</div>
+          <p
+            style="
+              background: #e3f2fd;
+              padding: 15px;
+              border-radius: 8px;
+              line-height: 1.8;
+            "
+          >
+            <strong>Kapan menggunakan:</strong> Ketika n sangat besar (> 10^6),
+            atau untuk competitive programming.<br />
+            <strong>Perfect untuk:</strong> Contests, challenges, atau untuk
+            show off mathematical elegance! 😎<br />
+            <strong>Catatan:</strong> Untuk n < 1000, Space Optimized lebih
+            praktis dan sama cepatnya.
+          </p>
+        </div>
+      </div>
+
+      <!-- FINAL COMPARISON -->
+      <div
+        class="method-card"
+        style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)"
+      >
+        <h2 style="color: #667eea; margin-bottom: 20px; text-align: center">
+          📊 Quick Comparison Table
+        </h2>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Time</th>
+              <th>Space</th>
+              <th>Best For</th>
+              <th>Difficulty</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: #f57f17">Recursive</strong></td>
+              <td style="color: #d32f2f">O(2^n)</td>
+              <td>O(n)</td>
+              <td>Learning only</td>
+              <td>⭐ Easy</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #155724">DP Bottom-Up</strong></td>
+              <td style="color: #28a745">O(n)</td>
+              <td>O(n)</td>
+              <td>Need sequence</td>
+              <td>⭐⭐ Medium</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #0c5460">Space Optimized</strong></td>
+              <td style="color: #28a745">O(n)</td>
+              <td style="color: #28a745">O(1)</td>
+              <td>Production code</td>
+              <td>⭐⭐ Medium</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #4a148c">Matrix Exp.</strong></td>
+              <td style="color: #7b42bc">O(log n)</td>
+              <td>O(log n)</td>
+              <td>n very large</td>
+              <td>⭐⭐⭐⭐ Hard</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div
+          style="
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+          "
+        >
+          <h3 style="color: #667eea; margin-bottom: 15px">
+            🎓 Which Should You Use?
+          </h3>
+          <ul style="line-height: 2; color: #333">
+            <li>
+              📚 <strong>Learning Recursion:</strong> Start with Recursive
+            </li>
+            <li>📊 <strong>Need Full Sequence:</strong> Use DP Bottom-Up</li>
+            <li>
+              🚀 <strong>Production Code (n < 10^6):</strong> Use Space
+              Optimized
+            </li>
+            <li>
+              🏆 <strong>Competitive Programming:</strong> Use Matrix
+              Exponentiation
+            </li>
+            <li>
+              💡 <strong>Most Common:</strong> Space Optimized is the winner for
+              90% of cases!
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <a
+        href="visualisation.html"
+        class="back-button"
+        style="display: block; text-align: center; margin-top: 30px"
+      >
+        ← Back to Interactive Demo
+      </a>
+    </div>
+  </body>
+</html>

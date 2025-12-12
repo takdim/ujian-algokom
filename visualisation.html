@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ALGOKOM Demo - Fibonacci & Bilinear Interpolation</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .demo-section {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      input[type="number"],
+      input[type="range"],
+      select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+
+      input[type="range"] {
+        padding: 0;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s;
+        margin-right: 10px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .results {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #667eea;
+      }
+
+      .results h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+
+      .result-item {
+        margin: 10px 0;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .result-label {
+        font-weight: bold;
+        color: #555;
+      }
+
+      .result-value {
+        color: #667eea;
+        font-family: "Courier New", monospace;
+      }
+
+      .time-badge {
+        background: #28a745;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        margin-left: 10px;
+      }
+
+      canvas {
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        margin: 10px 5px;
+        background: #f8f9fa;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .comparison {
+        text-align: center;
+      }
+
+      .comparison h4 {
+        color: #667eea;
+        margin: 10px 0;
+      }
+
+      .info-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+      }
+
+      .info-box strong {
+        color: #1976d2;
+      }
+
+      .sequence-display {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        font-family: "Courier New", monospace;
+        word-wrap: break-word;
+        border: 2px solid #667eea;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎯 ALGOKOM Interactive Demo</h1>
+
+      <!-- FIBONACCI SECTION -->
+      <div class="demo-section">
+        <h2>📊 Fibonacci Calculator - Compare 4 Methods</h2>
+
+        <div class="input-group">
+          <label for="fibN">Enter n (0-45):</label>
+          <input type="number" id="fibN" min="0" max="45" value="20" />
+        </div>
+
+        <button onclick="calculateFibonacci()">Calculate & Compare</button>
+        <button onclick="showSequence()">Show Sequence</button>
+        <button
+          onclick="window.location.href='fibonacci-details.html'"
+          style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%)"
+        >
+          📚 View Detailed Explanations
+        </button>
+
+        <div class="results" id="fibResults" style="display: none">
+          <h3>Results & Performance Comparison:</h3>
+          <div id="fibOutput"></div>
+        </div>
+
+        <div
+          class="sequence-display"
+          id="sequenceDisplay"
+          style="display: none"
+        ></div>
+
+        <div class="info-box">
+          <strong>💡 Tip:</strong> Try different values! Notice how recursive
+          method becomes exponentially slower after n=30.
+          <strong style="color: #d32f2f">Warning:</strong>
+          For n > 40, recursive method may take several minutes to complete!
+          Compare the execution times!
+        </div>
+
+        <!-- Algorithm Explanations -->
+        <div style="margin-top: 30px">
+          <h3 style="color: #667eea; margin-bottom: 15px">
+            📚 Algorithm Explanations
+          </h3>
+
+          <div
+            style="
+              background: #fff3cd;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 10px;
+              border-left: 4px solid #ffc107;
+            "
+          >
+            <strong style="color: #856404">1. Recursive (Naive)</strong>
+            <p style="margin: 8px 0 0 0; color: #333">
+              <strong>Cara Kerja:</strong> Memanggil diri sendiri 2x untuk
+              setiap n. F(n) = F(n-1) + F(n-2)<br />
+              <strong>Kompleksitas:</strong> O(2^n) waktu, O(n) space<br />
+              <strong>Kelebihan:</strong> Mudah dipahami, sesuai definisi
+              matematika<br />
+              <strong>Kelemahan:</strong> Sangat lambat! Menghitung nilai sama
+              berkali-kali
+            </p>
+          </div>
+
+          <div
+            style="
+              background: #d4edda;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 10px;
+              border-left: 4px solid #28a745;
+            "
+          >
+            <strong style="color: #155724"
+              >2. Dynamic Programming (Bottom-Up)</strong
+            >
+            <p style="margin: 8px 0 0 0; color: #333">
+              <strong>Cara Kerja:</strong> Menyimpan semua nilai dari 0 sampai n
+              dalam array<br />
+              <strong>Kompleksitas:</strong> O(n) waktu, O(n) space<br />
+              <strong>Kelebihan:</strong> Cepat, bisa akses semua nilai kapan
+              saja<br />
+              <strong>Kelemahan:</strong> Butuh memory untuk simpan semua nilai
+            </p>
+          </div>
+
+          <div
+            style="
+              background: #d1ecf1;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 10px;
+              border-left: 4px solid #17a2b8;
+            "
+          >
+            <strong style="color: #0c5460"
+              >3. Space Optimized (Iterative)</strong
+            >
+            <p style="margin: 8px 0 0 0; color: #333">
+              <strong>Cara Kerja:</strong> Hanya menyimpan 2 nilai terakhir
+              (prev & curr)<br />
+              <strong>Kompleksitas:</strong> O(n) waktu, O(1) space<br />
+              <strong>Kelebihan:</strong> Paling hemat memory! Tetap cepat<br />
+              <strong>Kelemahan:</strong> Hanya bisa dapat nilai akhir
+            </p>
+          </div>
+
+          <div
+            style="
+              background: #e7d4f5;
+              padding: 15px;
+              border-radius: 8px;
+              border-left: 4px solid #7b42bc;
+            "
+          >
+            <strong style="color: #4a148c">4. Matrix Exponentiation</strong>
+            <p style="margin: 8px 0 0 0; color: #333">
+              <strong>Cara Kerja:</strong> Menggunakan perkalian matrix
+              [[1,1],[1,0]]^n dengan fast power<br />
+              <strong>Kompleksitas:</strong> O(log n) waktu, O(log n) space<br />
+              <strong>Kelebihan:</strong> TERCEPAT untuk n sangat besar!
+              Logaritmik<br />
+              <strong>Kelemahan:</strong> Kompleks, butuh pemahaman aljabar
+              linear
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- BILINEAR INTERPOLATION SECTION -->
+      <div class="demo-section">
+        <h2>🎨 Bilinear Interpolation - Visual Demo</h2>
+
+        <!-- Introduction Box -->
+        <div
+          style="
+            margin-bottom: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+          "
+        >
+          <h3 style="color: #667eea; margin-bottom: 10px">
+            📖 Apa itu Bilinear Interpolation?
+          </h3>
+          <p style="color: #333; line-height: 1.8; margin-bottom: 10px">
+            <strong>Bilinear Interpolation</strong> adalah teknik matematika
+            untuk mengestimasi nilai pada titik mana pun di dalam area 2D
+            berdasarkan nilai 4 titik corner di sekitarnya. Teknik ini digunakan
+            secara luas dalam <strong>image processing</strong>, terutama untuk
+            <strong>resizing gambar</strong> atau <strong>zoom</strong>.
+          </p>
+          <p style="color: #333; line-height: 1.8">
+            <strong>🎯 Prinsip Kerja:</strong> Interpolasi dilakukan dalam 2
+            arah (x dan y), memberikan hasil yang
+            <strong>smooth dan natural</strong> dibandingkan metode sederhana
+            seperti Nearest Neighbor.
+          </p>
+        </div>
+
+        <div class="input-group">
+          <label>Corner Values (Q11, Q12, Q21, Q22):</label>
+          <div class="grid">
+            <div>
+              <label>Q11 (Bottom-Left):</label>
+              <input
+                type="range"
+                id="q11"
+                min="0"
+                max="255"
+                value="0"
+                oninput="updateInterpolation()"
+              />
+              <span id="q11val">0</span>
+            </div>
+            <div>
+              <label>Q12 (Top-Left):</label>
+              <input
+                type="range"
+                id="q12"
+                min="0"
+                max="255"
+                value="100"
+                oninput="updateInterpolation()"
+              />
+              <span id="q12val">100</span>
+            </div>
+            <div>
+              <label>Q21 (Bottom-Right):</label>
+              <input
+                type="range"
+                id="q21"
+                min="0"
+                max="255"
+                value="200"
+                oninput="updateInterpolation()"
+              />
+              <span id="q21val">200</span>
+            </div>
+            <div>
+              <label>Q22 (Top-Right):</label>
+              <input
+                type="range"
+                id="q22"
+                min="0"
+                max="255"
+                value="255"
+                oninput="updateInterpolation()"
+              />
+              <span id="q22val">255</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0">
+          <button
+            onclick="window.location.href='bilinear-details.html'"
+            style="
+              background: linear-gradient(135deg, #2196f3 0%, #00bcd4 100%);
+            "
+          >
+            📚 View Detailed Explanation
+          </button>
+        </div>
+
+        <div class="grid">
+          <div class="comparison">
+            <h4>Nearest Neighbor</h4>
+            <canvas id="nearestCanvas" width="200" height="200"></canvas>
+          </div>
+          <div class="comparison">
+            <h4>Bilinear Interpolation</h4>
+            <canvas id="bilinearCanvas" width="200" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="input-group" style="margin-top: 20px">
+          <label>Test Point Coordinates:</label>
+          <div class="grid">
+            <div>
+              <label>X Position (0-200):</label>
+              <input
+                type="range"
+                id="testX"
+                min="0"
+                max="200"
+                value="50"
+                oninput="updateInterpolation()"
+              />
+              <span id="testXval">50</span>
+            </div>
+            <div>
+              <label>Y Position (0-200):</label>
+              <input
+                type="range"
+                id="testY"
+                min="0"
+                max="200"
+                value="50"
+                oninput="updateInterpolation()"
+              />
+              <span id="testYval">50</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="results" style="display: block">
+          <h3>Test Point Calculation:</h3>
+          <div class="result-item">
+            <span class="result-label">Test Point (pixel):</span>
+            <span class="result-value" id="testPointPixel">x=50, y=50</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Test Point (normalized):</span>
+            <span class="result-value" id="testPointNorm">x=0.25, y=0.25</span>
+          </div>
+
+          <!-- Formula Display -->
+          <div
+            style="
+              margin: 15px 0;
+              padding: 15px;
+              background: #fff3e0;
+              border-radius: 8px;
+              border-left: 4px solid #ff9800;
+            "
+          >
+            <strong style="color: #e65100"
+              >📐 Rumus Bilinear Interpolation:</strong
+            >
+            <div
+              style="
+                margin-top: 10px;
+                padding: 10px;
+                background: white;
+                border-radius: 5px;
+                font-family: 'Courier New', monospace;
+                font-size: 13px;
+                overflow-x: auto;
+              "
+            >
+              <strong
+                >f(x,y) = (1-x)(1-y)Q₁₁ + x(1-y)Q₂₁ + (1-x)yQ₁₂ + xyQ₂₂</strong
+              >
+            </div>
+            <div
+              id="formulaBreakdown"
+              style="margin-top: 10px; font-size: 12px; color: #333"
+            ></div>
+          </div>
+
+          <div class="result-item">
+            <span class="result-label">Interpolated Value:</span>
+            <span class="result-value" id="interpValue">-</span>
+          </div>
+
+          <div
+            style="
+              margin-top: 10px;
+              padding: 10px;
+              background: #e3f2fd;
+              border-radius: 5px;
+              font-size: 12px;
+            "
+          >
+            <strong>💡 Penjelasan:</strong><br />
+            • Test point adalah titik yang kita hitung nilainya<br />
+            • Nilai dihitung dari
+            <strong>weighted average 4 corner (Q11, Q12, Q21, Q22)</strong
+            ><br />
+            • Semakin dekat ke corner, semakin <strong>besar weight-nya</strong
+            ><br />
+            • <strong>Coba ubah Q11-Q22</strong> dan lihat nilai test point
+            berubah!<br />
+            • <strong>Coba geser test point</strong> ke corner dan lihat
+            nilainya mendekati corner tersebut!
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>💡 Observation:</strong>
+          Move the sliders to see how bilinear interpolation creates smooth
+          gradients compared to nearest neighbor's blocky appearance.
+        </div>
+
+        <!-- Algorithm Explanations -->
+        <div style="margin-top: 30px">
+          <h3 style="color: #667eea; margin-bottom: 15px">
+            📚 Algorithm Explanations
+          </h3>
+
+          <div
+            style="
+              background: #ffe6e6;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 10px;
+              border-left: 4px solid #dc3545;
+            "
+          >
+            <strong style="color: #721c24">Nearest Neighbor</strong>
+            <p style="margin: 8px 0 0 0; color: #333">
+              <strong>Cara Kerja:</strong> Pilih nilai pixel terdekat tanpa
+              interpolasi<br />
+              <strong>Kompleksitas:</strong> O(1) per pixel<br />
+              <strong>Kelebihan:</strong> Sangat cepat, simple<br />
+              <strong>Kelemahan:</strong> Hasil kotak-kotak (pixelated),
+              kualitas rendah<br />
+              <strong>Use Case:</strong> Icon kecil, pixel art, zoom integer
+            </p>
+          </div>
+
+          <div
+            style="
+              background: #d4edda;
+              padding: 15px;
+              border-radius: 8px;
+              border-left: 4px solid #28a745;
+            "
+          >
+            <strong style="color: #155724">Bilinear Interpolation</strong>
+            <p style="margin: 8px 0 0 0; color: #333">
+              <strong>Cara Kerja:</strong> Interpolasi linear di 2 arah (x dan
+              y) dari 4 pixel tetangga<br />
+              <strong>Rumus:</strong> f(x,y) = (1-x)(1-y)Q11 + x(1-y)Q21 +
+              (1-x)yQ12 + xyQ22<br />
+              <strong>Kompleksitas:</strong> O(1) per pixel<br />
+              <strong>Kelebihan:</strong> Smooth, natural, balance speed vs
+              quality<br />
+              <strong>Kelemahan:</strong> Sedikit blur untuk edge<br />
+              <strong>Use Case:</strong> Image resizing, zoom foto, thumbnails
+            </p>
+          </div>
+
+          <div
+            style="
+              background: #e3f2fd;
+              padding: 15px;
+              border-radius: 8px;
+              border-left: 4px solid #2196f3;
+            "
+          >
+            <strong style="color: #0d47a1">💡 Perbandingan</strong>
+            <p style="margin: 8px 0 0 0; color: #333">
+              • Nearest Neighbor = Ambil 1 pixel → Hasil blocky<br />
+              • Bilinear = Rata-rata weighted dari 4 pixel → Hasil smooth<br />
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARISON SECTION -->
+      <div class="demo-section">
+        <h2>⚖️ Algorithm Comparison Summary</h2>
+
+        <div class="grid">
+          <div style="background: #e8f5e9; padding: 15px; border-radius: 8px">
+            <h3 style="color: #2e7d32">Fibonacci</h3>
+            <p><strong>Best for Speed:</strong> Matrix Exponentiation</p>
+            <p><strong>Best for Memory:</strong> Space Optimized</p>
+            <p><strong>Best for Learning:</strong> DP Memoization</p>
+            <p><strong>Range:</strong> O(1) to O(2^n)</p>
+          </div>
+
+          <div style="background: #e3f2fd; padding: 15px; border-radius: 8px">
+            <h3 style="color: #1565c0">Bilinear</h3>
+            <p><strong>Complexity:</strong> O(1) per pixel</p>
+            <p><strong>Quality:</strong> Good balance</p>
+            <p><strong>Use Case:</strong> Image resizing</p>
+            <p><strong>Alternative:</strong> Bicubic (slower, smoother)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // FIBONACCI IMPLEMENTATIONS
+      function fibRecursive(n) {
+        if (n <= 1) return n;
+        return fibRecursive(n - 1) + fibRecursive(n - 2);
+      }
+
+      function fibDP(n) {
+        if (n <= 1) return n;
+        let dp = [0, 1];
+        for (let i = 2; i <= n; i++) {
+          dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        return dp[n];
+      }
+
+      function fibOptimized(n) {
+        if (n <= 1) return n;
+        let prev = 0,
+          curr = 1;
+        for (let i = 2; i <= n; i++) {
+          [prev, curr] = [curr, prev + curr];
+        }
+        return curr;
+      }
+
+      function fibMatrix(n) {
+        if (n <= 1) return n;
+
+        function matMul(a, b) {
+          return [
+            [
+              a[0][0] * b[0][0] + a[0][1] * b[1][0],
+              a[0][0] * b[0][1] + a[0][1] * b[1][1],
+            ],
+            [
+              a[1][0] * b[0][0] + a[1][1] * b[1][0],
+              a[1][0] * b[0][1] + a[1][1] * b[1][1],
+            ],
+          ];
+        }
+
+        function matPow(m, p) {
+          if (p === 1) return m;
+          if (p % 2 === 0) {
+            let half = matPow(m, p / 2);
+            return matMul(half, half);
+          }
+          return matMul(m, matPow(m, p - 1));
+        }
+
+        let base = [
+          [1, 1],
+          [1, 0],
+        ];
+        let result = matPow(base, n);
+        return result[0][1];
+      }
+
+      function calculateFibonacci() {
+        const n = parseInt(document.getElementById("fibN").value);
+        const output = document.getElementById("fibOutput");
+        const results = document.getElementById("fibResults");
+
+        output.innerHTML = "";
+        results.style.display = "block";
+
+        const methods = [
+          { name: "Recursive", func: fibRecursive, skip: false },
+          { name: "DP Bottom-Up", func: fibDP, skip: false },
+          { name: "Space Optimized", func: fibOptimized, skip: false },
+          { name: "Matrix Exponentiation", func: fibMatrix, skip: false },
+        ];
+
+        methods.forEach((method) => {
+          const item = document.createElement("div");
+          item.className = "result-item";
+
+          if (method.skip) {
+            item.innerHTML = `
+                        <span class="result-label">${method.name}:</span>
+                        <span style="color:#dc3545;">SKIPPED</span>
+                    `;
+          } else {
+            // Jalankan berkali-kali untuk pengukuran yang lebih akurat
+            // Recursive: 1x saja (karena bisa sangat lambat)
+            // Lainnya: 1000x untuk hasil lebih akurat
+            const runs = method.name === "Recursive" ? 1 : 1000;
+            let totalTime = 0;
+            let result;
+
+            for (let i = 0; i < runs; i++) {
+              const start = performance.now();
+              result = method.func(n);
+              totalTime += performance.now() - start;
+            }
+
+            const avgTimeMs = totalTime / runs;
+
+            // Format waktu dengan presisi tinggi untuk melihat perbedaan
+            let timeDisplay;
+            if (avgTimeMs < 0.001) {
+              timeDisplay = `${(avgTimeMs * 1000).toFixed(4)} μs`;
+            } else if (avgTimeMs < 0.01) {
+              timeDisplay = `${avgTimeMs.toFixed(6)} ms`;
+            } else if (avgTimeMs < 1) {
+              timeDisplay = `${avgTimeMs.toFixed(4)} ms`;
+            } else if (avgTimeMs < 1000) {
+              timeDisplay = `${avgTimeMs.toFixed(3)} ms`;
+            } else {
+              timeDisplay = `${(avgTimeMs / 1000).toFixed(3)} s`;
+            }
+
+            item.innerHTML = `
+                        <span class="result-label">${method.name}:</span>
+                        <div>
+                            <span class="result-value">${result}</span>
+                            <span class="time-badge">${timeDisplay}</span>
+                            <span style="font-size: 10px; color: #888; margin-left: 5px;">(avg ${runs}x)</span>
+                        </div>
+                    `;
+          }
+
+          output.appendChild(item);
+        });
+      }
+
+      function showSequence() {
+        const n = parseInt(document.getElementById("fibN").value);
+        const display = document.getElementById("sequenceDisplay");
+
+        let sequence = [];
+        for (let i = 0; i <= n; i++) {
+          sequence.push(fibOptimized(i));
+        }
+
+        display.innerHTML = `<strong>Fibonacci Sequence [0 to ${n}]:</strong><br>${sequence.join(
+          ", "
+        )}`;
+        display.style.display = "block";
+      }
+
+      // BILINEAR INTERPOLATION
+      function bilinearInterpolate(x, y, q11, q12, q21, q22) {
+        // Assuming unit square (0,0) to (1,1)
+        const r1 = q11 * (1 - x) + q21 * x;
+        const r2 = q12 * (1 - x) + q22 * x;
+        return r1 * (1 - y) + r2 * y;
+      }
+
+      function updateInterpolation() {
+        const q11 = parseInt(document.getElementById("q11").value);
+        const q12 = parseInt(document.getElementById("q12").value);
+        const q21 = parseInt(document.getElementById("q21").value);
+        const q22 = parseInt(document.getElementById("q22").value);
+
+        document.getElementById("q11val").textContent = q11;
+        document.getElementById("q12val").textContent = q12;
+        document.getElementById("q21val").textContent = q21;
+        document.getElementById("q22val").textContent = q22;
+
+        // Get test point coordinates
+        const testXPixel = parseInt(document.getElementById("testX").value);
+        const testYPixel = parseInt(document.getElementById("testY").value);
+
+        document.getElementById("testXval").textContent = testXPixel;
+        document.getElementById("testYval").textContent = testYPixel;
+
+        // Convert to normalized coordinates (0-1)
+        const testX = testXPixel / 200;
+        const testY = testYPixel / 200;
+
+        // Update display
+        document.getElementById(
+          "testPointPixel"
+        ).textContent = `x=${testXPixel}, y=${testYPixel}`;
+        document.getElementById(
+          "testPointNorm"
+        ).textContent = `x=${testX.toFixed(2)}, y=${testY.toFixed(2)}`;
+
+        // Draw nearest neighbor
+        const nearestCanvas = document.getElementById("nearestCanvas");
+        const nearestCtx = nearestCanvas.getContext("2d");
+        drawNearest(nearestCtx, q11, q12, q21, q22);
+
+        // Draw bilinear
+        const bilinearCanvas = document.getElementById("bilinearCanvas");
+        const bilinearCtx = bilinearCanvas.getContext("2d");
+        drawBilinear(bilinearCtx, q11, q12, q21, q22);
+
+        // Draw test point marker on both canvases
+        drawTestPointMarker(nearestCtx, testXPixel, testYPixel);
+        drawTestPointMarker(bilinearCtx, testXPixel, testYPixel);
+
+        // Calculate test point value (flip y for calculation)
+        const testValue = bilinearInterpolate(
+          testX,
+          1 - testY,
+          q11,
+          q12,
+          q21,
+          q22
+        );
+        document.getElementById("interpValue").textContent =
+          testValue.toFixed(2);
+
+        // Display formula breakdown
+        const x = testX;
+        const y = 1 - testY; // flipped for calculation
+
+        const term1 = (1 - x) * (1 - y) * q11;
+        const term2 = x * (1 - y) * q21;
+        const term3 = (1 - x) * y * q12;
+        const term4 = x * y * q22;
+
+        const weight1 = (1 - x) * (1 - y);
+        const weight2 = x * (1 - y);
+        const weight3 = (1 - x) * y;
+        const weight4 = x * y;
+
+        document.getElementById("formulaBreakdown").innerHTML = `
+          <div style="margin: 5px 0;">
+            <strong>Substitusi nilai:</strong><br>
+            f(${testX.toFixed(2)}, ${y.toFixed(2)}) = 
+            (${(1 - x).toFixed(2)})(${(1 - y).toFixed(2)})×${q11} + 
+            (${x.toFixed(2)})(${(1 - y).toFixed(2)})×${q21} + 
+            (${(1 - x).toFixed(2)})(${y.toFixed(2)})×${q12} + 
+            (${x.toFixed(2)})(${y.toFixed(2)})×${q22}
+          </div>
+          <div style="margin: 10px 0; padding: 10px; background: #f0f8ff; border-radius: 5px;">
+            <strong>Step-by-step:</strong><br>
+            <span style="color: #dc3545;">• Term 1 (Q₁₁): ${weight1.toFixed(
+              4
+            )} × ${q11} = <strong>${term1.toFixed(2)}</strong></span><br>
+            <span style="color: #ffc107;">• Term 2 (Q₂₁): ${weight2.toFixed(
+              4
+            )} × ${q21} = <strong>${term2.toFixed(2)}</strong></span><br>
+            <span style="color: #28a745;">• Term 3 (Q₁₂): ${weight3.toFixed(
+              4
+            )} × ${q12} = <strong>${term3.toFixed(2)}</strong></span><br>
+            <span style="color: #17a2b8;">• Term 4 (Q₂₂): ${weight4.toFixed(
+              4
+            )} × ${q22} = <strong>${term4.toFixed(2)}</strong></span>
+          </div>
+          <div style="margin-top: 10px; padding: 10px; background: #fff; border: 2px solid #667eea; border-radius: 5px;">
+            <strong style="color: #667eea; font-size: 14px;">
+              ✅ TOTAL = ${term1.toFixed(2)} + ${term2.toFixed(
+          2
+        )} + ${term3.toFixed(2)} + ${term4.toFixed(2)} = ${testValue.toFixed(2)}
+            </strong>
+          </div>
+        `;
+      }
+
+      function drawTestPointMarker(ctx, x, y) {
+        // Draw a red circle at test point
+        ctx.fillStyle = "red";
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Draw crosshair
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x - 10, y);
+        ctx.lineTo(x + 10, y);
+        ctx.moveTo(x, y - 10);
+        ctx.lineTo(x, y + 10);
+        ctx.stroke();
+      }
+
+      function drawNearest(ctx, q11, q12, q21, q22) {
+        const size = 200;
+        ctx.clearRect(0, 0, size, size);
+
+        // Draw 4 quadrants
+        ctx.fillStyle = `rgb(${q11}, ${q11}, ${q11})`;
+        ctx.fillRect(0, size / 2, size / 2, size / 2);
+
+        ctx.fillStyle = `rgb(${q12}, ${q12}, ${q12})`;
+        ctx.fillRect(0, 0, size / 2, size / 2);
+
+        ctx.fillStyle = `rgb(${q21}, ${q21}, ${q21})`;
+        ctx.fillRect(size / 2, size / 2, size / 2, size / 2);
+
+        ctx.fillStyle = `rgb(${q22}, ${q22}, ${q22})`;
+        ctx.fillRect(size / 2, 0, size / 2, size / 2);
+      }
+
+      function drawBilinear(ctx, q11, q12, q21, q22) {
+        const size = 200;
+        ctx.clearRect(0, 0, size, size);
+
+        const imageData = ctx.createImageData(size, size);
+
+        for (let i = 0; i < size; i++) {
+          for (let j = 0; j < size; j++) {
+            const x = j / (size - 1);
+            const y = 1 - i / (size - 1); // Flip y
+
+            const value = bilinearInterpolate(x, y, q11, q12, q21, q22);
+
+            const idx = (i * size + j) * 4;
+            imageData.data[idx] = value;
+            imageData.data[idx + 1] = value;
+            imageData.data[idx + 2] = value;
+            imageData.data[idx + 3] = 255;
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+      }
+
+      // Initialize
+      updateInterpolation();
+    </script>
+  </body>
+</html>

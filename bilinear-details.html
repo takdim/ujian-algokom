@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bilinear Interpolation - Detailed Explanation</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .back-button {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-bottom: 20px;
+        display: inline-block;
+        text-decoration: none;
+        transition: all 0.3s;
+      }
+
+      .back-button:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+      }
+
+      h1 {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .content-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #2196f3;
+      }
+
+      .section-title {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #1976d2;
+      }
+
+      .badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.9em;
+        background: #e3f2fd;
+        color: #1565c0;
+      }
+
+      .section {
+        margin: 25px 0;
+      }
+
+      .section h3 {
+        font-size: 1.3em;
+        margin-bottom: 15px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .code-block {
+        background: #f5f5f5;
+        border-left: 4px solid #2196f3;
+        padding: 20px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        overflow-x: auto;
+        line-height: 1.6;
+      }
+
+      .formula-box {
+        background: #fff3e0;
+        border-left: 4px solid #ff9800;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .formula-box .formula {
+        background: white;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: "Courier New", monospace;
+        font-size: 16px;
+        text-align: center;
+        margin: 10px 0;
+        font-weight: bold;
+        color: #e65100;
+      }
+
+      .step-by-step {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+      }
+
+      .step {
+        margin: 10px 0;
+        padding: 15px;
+        background: white;
+        border-radius: 5px;
+        border-left: 3px solid #2196f3;
+      }
+
+      .step strong {
+        color: #1976d2;
+      }
+
+      .visual-demo {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        padding: 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 15px;
+      }
+
+      .comparison-card {
+        padding: 15px;
+        border-radius: 8px;
+        border: 2px solid;
+      }
+
+      .comparison-card h4 {
+        margin-bottom: 10px;
+        font-size: 1.2em;
+      }
+
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .comparison-table th {
+        background: #2196f3;
+        color: white;
+        font-weight: bold;
+      }
+
+      .comparison-table tr:hover {
+        background: #f5f5f5;
+      }
+
+      .info-box {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        line-height: 1.8;
+      }
+
+      .info-box.blue {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+      }
+
+      .info-box.green {
+        background: #e8f5e9;
+        border-left: 4px solid #4caf50;
+      }
+
+      .info-box.orange {
+        background: #fff3e0;
+        border-left: 4px solid #ff9800;
+      }
+
+      .info-box.purple {
+        background: #f3e5f5;
+        border-left: 4px solid #9c27b0;
+      }
+
+      .pros-cons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 15px;
+      }
+
+      .pros,
+      .cons {
+        padding: 15px;
+        border-radius: 8px;
+      }
+
+      .pros {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+      }
+
+      .cons {
+        background: #f8d7da;
+        border-left: 4px solid #dc3545;
+      }
+
+      .info-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .info-list li {
+        margin: 8px 0;
+        padding-left: 25px;
+        position: relative;
+      }
+
+      .info-list li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+      }
+
+      .pros .info-list li:before {
+        color: #28a745;
+      }
+
+      .cons .info-list li:before {
+        content: "✗";
+        color: #dc3545;
+      }
+
+      .diagram {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+        text-align: center;
+      }
+
+      .coordinate-system {
+        display: inline-block;
+        position: relative;
+        width: 300px;
+        height: 300px;
+        border: 2px solid #333;
+        margin: 20px;
+      }
+
+      .point {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .point-label {
+        position: absolute;
+        font-size: 12px;
+        font-weight: bold;
+        transform: translate(-50%, -50%);
+      }
+
+      @media (max-width: 768px) {
+        .comparison-grid,
+        .pros-cons {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="visualisation.html" class="back-button">← Back to Demo</a>
+
+      <h1>🎨 Bilinear Interpolation - Deep Dive</h1>
+
+      <!-- INTRODUCTION -->
+      <div class="content-card">
+        <div class="section-header">
+          <div class="section-title">📖 Apa itu Bilinear Interpolation?</div>
+          <div class="badge">Image Processing</div>
+        </div>
+
+        <div class="section">
+          <p style="line-height: 1.8; color: #555; font-size: 1.1em">
+            <strong>Bilinear Interpolation</strong> adalah teknik matematika
+            untuk mengestimasi nilai pada titik mana pun di dalam area 2D
+            berdasarkan nilai 4 titik corner di sekitarnya. Teknik ini sangat
+            penting dalam <strong>image processing</strong>, terutama untuk
+            <strong>image resizing</strong>, <strong>rotation</strong>, dan
+            <strong>texture mapping</strong> dalam computer graphics.
+          </p>
+        </div>
+
+        <div class="info-box blue">
+          <strong style="color: #1565c0">🎯 Prinsip Dasar:</strong><br />
+          Interpolasi dilakukan dalam <strong>2 tahap</strong>:
+          <ol style="margin-top: 10px; margin-left: 20px; line-height: 1.8">
+            <li>
+              <strong>Linear Interpolation di arah X</strong> - Interpolasi
+              horizontal antara corner kiri dan kanan
+            </li>
+            <li>
+              <strong>Linear Interpolation di arah Y</strong> - Interpolasi
+              vertikal dari hasil step 1
+            </li>
+          </ol>
+        </div>
+
+        <div class="info-box green">
+          <strong style="color: #2e7d32">💡 Kenapa "Bi-linear"?</strong><br />
+          <strong>"Bi"</strong> = Dua → Linear interpolation dilakukan
+          <strong>2 kali</strong> (sekali untuk X, sekali untuk Y). Makanya
+          disebut <strong>"Bi-linear"</strong> bukan cuma "linear"!
+        </div>
+      </div>
+
+      <!-- MATHEMATICAL FORMULA -->
+      <div class="content-card">
+        <div class="section-header">
+          <div class="section-title">📐 Rumus Matematika</div>
+          <div class="badge">Core Formula</div>
+        </div>
+
+        <div class="formula-box">
+          <h4 style="color: #e65100; margin-bottom: 15px">
+            Rumus Lengkap Bilinear Interpolation:
+          </h4>
+          <div class="formula">
+            f(x, y) = (1-x)(1-y)Q₁₁ + x(1-y)Q₂₁ + (1-x)yQ₁₂ + xyQ₂₂
+          </div>
+
+          <div
+            style="
+              margin-top: 20px;
+              padding: 15px;
+              background: white;
+              border-radius: 5px;
+            "
+          >
+            <strong>Dimana:</strong>
+            <ul style="margin-top: 10px; line-height: 1.8">
+              <li>
+                <strong>x, y</strong> = Koordinat normalized (0 sampai 1) dari
+                titik yang ingin dihitung
+              </li>
+              <li>
+                <strong>Q₁₁</strong> = Nilai corner Bottom-Left (x=0, y=0)
+              </li>
+              <li><strong>Q₁₂</strong> = Nilai corner Top-Left (x=0, y=1)</li>
+              <li>
+                <strong>Q₂₁</strong> = Nilai corner Bottom-Right (x=1, y=0)
+              </li>
+              <li><strong>Q₂₂</strong> = Nilai corner Top-Right (x=1, y=1)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>🔍 Breakdown Rumus</h3>
+          <p style="margin-bottom: 15px; color: #555; line-height: 1.8">
+            Rumus di atas adalah <strong>weighted average</strong> dari 4 corner
+            values. Mari kita pecah menjadi 4 term:
+          </p>
+
+          <div class="step-by-step">
+            <div class="step">
+              <strong>Term 1: (1-x)(1-y)Q₁₁</strong><br />
+              Weight untuk corner Bottom-Left (Q₁₁). Semakin dekat ke (0,0),
+              weight semakin besar.
+            </div>
+            <div class="step">
+              <strong>Term 2: x(1-y)Q₂₁</strong><br />
+              Weight untuk corner Bottom-Right (Q₂₁). Semakin dekat ke (1,0),
+              weight semakin besar.
+            </div>
+            <div class="step">
+              <strong>Term 3: (1-x)yQ₁₂</strong><br />
+              Weight untuk corner Top-Left (Q₁₂). Semakin dekat ke (0,1), weight
+              semakin besar.
+            </div>
+            <div class="step">
+              <strong>Term 4: xyQ₂₂</strong><br />
+              Weight untuk corner Top-Right (Q₂₂). Semakin dekat ke (1,1),
+              weight semakin besar.
+            </div>
+          </div>
+
+          <div class="info-box orange">
+            <strong>💡 Insight Penting:</strong><br />
+            Total dari semua weights SELALU = 1:<br />
+            <code
+              style="
+                background: white;
+                padding: 5px;
+                border-radius: 3px;
+                display: inline-block;
+                margin-top: 5px;
+              "
+            >
+              (1-x)(1-y) + x(1-y) + (1-x)y + xy = 1 </code
+            ><br />
+            Ini memastikan hasil interpolasi berada di range yang sama dengan
+            input values!
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP BY STEP CALCULATION -->
+      <div class="content-card">
+        <div class="section-header">
+          <div class="section-title">🧮 Contoh Perhitungan Step-by-Step</div>
+          <div class="badge">Example</div>
+        </div>
+
+        <div class="section">
+          <h3>📊 Setup:</h3>
+          <div class="info-box blue">
+            <strong>Corner Values:</strong><br />
+            • Q₁₁ (Bottom-Left) = 0<br />
+            • Q₁₂ (Top-Left) = 100<br />
+            • Q₂₁ (Bottom-Right) = 200<br />
+            • Q₂₂ (Top-Right) = 255<br /><br />
+            <strong>Test Point:</strong> (x=0.5, y=0.5) - Tepat di tengah!
+          </div>
+
+          <h3 style="margin-top: 30px">🔢 Perhitungan:</h3>
+          <div class="step-by-step">
+            <div class="step">
+              <strong>Step 1: Hitung Weight untuk setiap corner</strong><br />
+              <div style="margin-top: 10px; margin-left: 20px">
+                • Weight₁ (Q₁₁) = (1-0.5)(1-0.5) = 0.5 × 0.5 =
+                <strong>0.25</strong><br />
+                • Weight₂ (Q₂₁) = (0.5)(1-0.5) = 0.5 × 0.5 =
+                <strong>0.25</strong><br />
+                • Weight₃ (Q₁₂) = (1-0.5)(0.5) = 0.5 × 0.5 =
+                <strong>0.25</strong><br />
+                • Weight₄ (Q₂₂) = (0.5)(0.5) = <strong>0.25</strong>
+              </div>
+            </div>
+
+            <div class="step">
+              <strong>Step 2: Kalikan Weight dengan Corner Value</strong><br />
+              <div style="margin-top: 10px; margin-left: 20px">
+                • Term₁ = 0.25 × 0 = <strong>0</strong><br />
+                • Term₂ = 0.25 × 200 = <strong>50</strong><br />
+                • Term₃ = 0.25 × 100 = <strong>25</strong><br />
+                • Term₄ = 0.25 × 255 = <strong>63.75</strong>
+              </div>
+            </div>
+
+            <div class="step">
+              <strong>Step 3: Jumlahkan Semua Term</strong><br />
+              <div style="margin-top: 10px; margin-left: 20px">
+                f(0.5, 0.5) = 0 + 50 + 25 + 63.75 =
+                <strong style="color: #2196f3; font-size: 1.2em">138.75</strong>
+              </div>
+            </div>
+
+            <div
+              style="
+                background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+                padding: 15px;
+                border-radius: 8px;
+                margin-top: 15px;
+              "
+            >
+              <strong style="color: #1976d2">✅ Hasil:</strong><br />
+              Nilai interpolasi di titik tengah (0.5, 0.5) =
+              <strong>138.75</strong><br />
+              Perhatikan: Ini adalah <strong>rata-rata weighted</strong> dari 4
+              corner!<br />
+              Karena titik tepat di tengah, semua weight sama (0.25 atau 25%).
+            </div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top: 30px">
+          <h3>🎯 Contoh 2: Test Point di Corner</h3>
+          <div class="info-box purple">
+            <strong>Coba hitung untuk point (x=1, y=1) - Corner Q₂₂:</strong
+            ><br /><br />
+            • Weight₁ (Q₁₁) = (1-1)(1-1) = 0 × 0 = <strong>0</strong><br />
+            • Weight₂ (Q₂₁) = (1)(1-1) = 1 × 0 = <strong>0</strong><br />
+            • Weight₃ (Q₁₂) = (1-1)(1) = 0 × 1 = <strong>0</strong><br />
+            • Weight₄ (Q₂₂) = (1)(1) = <strong>1</strong> ✅<br /><br />
+            <strong style="color: #9c27b0"
+              >Hasil: f(1,1) = 0 + 0 + 0 + 255 = 255</strong
+            ><br />
+            Tepat sama dengan Q₂₂! Ini bukti rumus bekerja dengan benar. 🎉
+          </div>
+        </div>
+      </div>
+
+      <!-- TWO-STEP INTERPRETATION -->
+      <div class="content-card">
+        <div class="section-header">
+          <div class="section-title">🔄 Interpretasi 2-Step: Bi-Linear</div>
+          <div class="badge">Alternative View</div>
+        </div>
+
+        <div class="section">
+          <p style="margin-bottom: 15px; color: #555; line-height: 1.8">
+            Rumus di atas bisa juga dipahami sebagai
+            <strong>2 tahap interpolasi linear</strong>:
+          </p>
+
+          <div class="step-by-step">
+            <div class="step">
+              <strong>Step 1: Interpolasi Linear di arah X (horizontal)</strong
+              ><br />
+              <div style="margin-top: 10px">
+                Hitung 2 nilai intermediate:<br />
+                • <strong>R₁</strong> (bottom row) = (1-x)Q₁₁ + xQ₂₁<br />
+                • <strong>R₂</strong> (top row) = (1-x)Q₁₂ + xQ₂₂<br />
+              </div>
+            </div>
+
+            <div class="step">
+              <strong>Step 2: Interpolasi Linear di arah Y (vertical)</strong
+              ><br />
+              <div style="margin-top: 10px">
+                Kombinasikan R₁ dan R₂:<br />
+                • <strong>f(x,y)</strong> = (1-y)R₁ + yR₂
+              </div>
+            </div>
+          </div>
+
+          <div class="info-box green">
+            <strong>🔍 Contoh dengan angka sebelumnya (x=0.5, y=0.5):</strong
+            ><br /><br />
+            <strong>Step 1 (Horizontal):</strong><br />
+            • R₁ = (0.5)(0) + (0.5)(200) = 0 + 100 = <strong>100</strong><br />
+            • R₂ = (0.5)(100) + (0.5)(255) = 50 + 127.5 = <strong>177.5</strong
+            ><br /><br />
+            <strong>Step 2 (Vertical):</strong><br />
+            • f(0.5, 0.5) = (0.5)(100) + (0.5)(177.5) = 50 + 88.75 =
+            <strong>138.75</strong> ✅<br /><br />
+            Hasilnya sama! Ini membuktikan kedua cara ekuivalen.
+          </div>
+        </div>
+      </div>
+
+      <!-- PROS AND CONS -->
+      <div class="content-card">
+        <div class="section-header">
+          <div class="section-title">⚖️ Kelebihan & Kekurangan Bilinear</div>
+          <div class="badge">Analysis</div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            <h4>✅ Kelebihan</h4>
+            <ul class="info-list">
+              <li>Balance sempurna antara speed & quality</li>
+              <li>Mudah diimplementasikan</li>
+              <li>Kompleksitas O(1) per pixel</li>
+              <li>Hasil smooth & natural untuk kebanyakan kasus</li>
+              <li>Hardware-accelerated di GPU</li>
+              <li>Widely supported di semua platform</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h4>❌ Kekurangan</h4>
+            <ul class="info-list">
+              <li>Slight blur pada edges tajam</li>
+              <li>Tidak sebaik bicubic untuk detail halus</li>
+              <li>Bisa ada aliasing artifacts untuk downscaling besar</li>
+              <li>Tidak preserve edges dengan sempurna</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="info-box blue" style="margin-top: 20px">
+          <strong>💡 Kesimpulan:</strong><br />
+          Bilinear adalah <strong>"sweet spot"</strong> untuk 90% use case!
+          Cukup cepat untuk real-time processing, cukup bagus untuk sebagian
+          besar aplikasi. Gunakan bicubic/lanczos hanya jika butuh kualitas
+          maksimal dan punya waktu untuk komputasi lebih lama.
+        </div>
+      </div>
+
+      <!-- REAL WORLD APPLICATIONS -->
+      <div class="content-card">
+        <div class="section-header">
+          <div class="section-title">🌍 Aplikasi di Dunia Nyata</div>
+          <div class="badge">Use Cases</div>
+        </div>
+
+        <div class="section">
+          <div class="info-box green">
+            <strong>🖼️ 1. Image Resizing & Thumbnails</strong><br />
+            Semua website & app menggunakan interpolation untuk generate
+            thumbnails dari gambar besar. Bilinear adalah pilihan default karena
+            cepat & cukup bagus.
+          </div>
+
+          <div class="info-box blue">
+            <strong>🎮 2. Video Games - Texture Mapping</strong><br />
+            GPU menggunakan bilinear filtering untuk map textures ke 3D objects.
+            Saat camera zoom in/out, texture di-interpolate real-time untuk
+            smooth appearance.
+          </div>
+
+          <div class="info-box orange">
+            <strong>📱 3. Mobile Apps & UI Scaling</strong><br />
+            Responsive design membutuhkan image scaling untuk berbagai screen
+            sizes. Bilinear memastikan icons & images tetap smooth di semua
+            resolusi.
+          </div>
+
+          <div class="info-box purple">
+            <strong>🎥 4. Video Processing</strong><br />
+            Video upscaling (480p → 1080p) menggunakan interpolation. Bilinear
+            cukup cepat untuk real-time video processing di 30-60 FPS.
+          </div>
+
+          <div class="info-box green">
+            <strong>🗺️ 5. Geographic Information Systems (GIS)</strong><br />
+            Zoom in/out pada maps (Google Maps, dll) menggunakan interpolation
+            untuk smooth transitions antar zoom levels.
+          </div>
+
+          <div class="info-box blue">
+            <strong>🔬 6. Medical Imaging</strong><br />
+            CT scans & MRI images perlu di-resize untuk different views.
+            Bilinear digunakan untuk preview, bicubic untuk diagnostic quality.
+          </div>
+        </div>
+      </div>
+
+      <!-- SUMMARY -->
+      <div
+        class="content-card"
+        style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)"
+      >
+        <h2 style="color: #1976d2; margin-bottom: 20px; text-align: center">
+          📝 Ringkasan
+        </h2>
+
+        <div style="background: white; padding: 20px; border-radius: 10px">
+          <h3 style="color: #667eea; margin-bottom: 15px">🎯 Key Takeaways</h3>
+          <ul style="line-height: 2; color: #333">
+            <li>
+              📐 <strong>Bilinear Interpolation</strong> = Weighted average dari
+              4 corner pixels
+            </li>
+            <li>
+              🔢 <strong>Rumus:</strong> f(x,y) = (1-x)(1-y)Q₁₁ + x(1-y)Q₂₁ +
+              (1-x)yQ₁₂ + xyQ₂₂
+            </li>
+            <li>
+              ⚡ <strong>Kompleksitas:</strong> O(1) per pixel - sangat
+              efficient!
+            </li>
+            <li>
+              🎯 <strong>Sweet Spot:</strong> Balance sempurna antara quality &
+              speed
+            </li>
+            <li>
+              🌍 <strong>Widely Used:</strong> Image resizing, texture mapping,
+              video scaling, UI
+            </li>
+            <li>
+              💻 <strong>Implementation:</strong> Simple & straightforward -
+              cuma beberapa operasi aritmatika
+            </li>
+            <li>
+              🚀 <strong>Best Choice:</strong> Untuk 90% aplikasi image
+              processing!
+            </li>
+          </ul>
+        </div>
+
+        <div
+          style="
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+          "
+        >
+          <h3 style="color: #667eea; margin-bottom: 15px">
+            🎓 Kapan Menggunakan?
+          </h3>
+          <ul style="line-height: 2; color: #333">
+            <li>
+              ✅ <strong>Gunakan Bilinear jika:</strong> Butuh balance speed &
+              quality, real-time processing, general purpose resizing
+            </li>
+            <li>
+              🔲 <strong>Gunakan Nearest Neighbor jika:</strong> Speed absolut,
+              pixel art, retro look
+            </li>
+            <li>
+              🎨 <strong>Gunakan Bicubic jika:</strong> Quality premium, photo
+              editing, print work
+            </li>
+            <li>
+              ✨ <strong>Gunakan Lanczos jika:</strong> Maximum quality, batch
+              processing, professional work
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <a
+        href="visualisation.html"
+        class="back-button"
+        style="display: block; text-align: center; margin-top: 30px"
+      >
+        ← Back to Interactive Demo
+      </a>
+    </div>
+  </body>
+</html>
