@@ -1,0 +1,12 @@
+{
+  "C_Cpp.default.configurationProvider": "ms-vscode.cpptools",
+  "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.intelliSenseEngineFallback": "enabled",
+  "[c]": {
+    "editor.formatOnSave": false
+  },
+  "files.associations": {
+    "*.c": "c",
+    "*.h": "c"
+  }
+}

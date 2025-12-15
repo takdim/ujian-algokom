@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALGOKOM Demo - Fibonacci & Bilinear (Presentasi)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/league.min.css">
+  <style>
+    .reveal { font-size: 26px; }
+    .reveal h1 { font-size: 2.2em; color: #5c7cfa; }
+    .reveal h2 { font-size: 1.5em; color: #20c997; }
+    .reveal h3 { font-size: 1.1em; color: #ff6b6b; }
+    .pill {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 14px;
+      font-size: 0.6em;
+      font-weight: bold;
+      background: #e9ecef;
+      color: #495057;
+      margin-left: 8px;
+    }
+    .card {
+      background: rgba(255,255,255,0.85);
+      color: #222;
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      font-size: 0.8em;
+      text-align: left;
+    }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; font-size: 0.75em; }
+    .badge { font-weight: bold; color: #20c997; }
+    code { background: #f1f3f5; padding: 2px 6px; border-radius: 6px; }
+    .demo-frame {
+      width: 100%;
+      height: 70vh;
+      border: 2px solid #dee2e6;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Intro -->
+      <section>
+        <h1>ALGOKOM Demo</h1>
+        <h2>Fibonacci (C + OpenMP/OpenCilk) & Bilinear Interpolation</h2>
+        <p style="font-size:0.8em;color:#666;">Sumber materi: index.html, fibonacci-details.html, bilinear-details.html</p>
+      </section>
+
+      <!-- Top-level agenda -->
+      <section>
+        <h2>Agenda</h2>
+        <div class="grid-3">
+          <div class="card">
+            <strong>Fibonacci</strong>
+            <ul>
+              <li>Sequential</li>
+              <li>OpenMP: serial vs task-based</li>
+              <li>OpenCilk: spawn/sync</li>
+            </ul>
+          </div>
+          <div class="card">
+            <strong>Bilinear Interpolation</strong>
+            <ul>
+              <li>Mapping dest → src</li>
+              <li>4 tetangga + fx, fy</li>
+              <li>OpenMP parallel</li>
+            </ul>
+          </div>
+          <div class="card">
+            <strong>Demo Setup</strong>
+            <ul>
+              <li>C backend + Node API</li>
+              <li>Front-end interaktif</li>
+              <li>Metrik: time, speedup, efficiency</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Fibonacci stack: konsep + demo -->
+      <section>
+        <section>
+          <h2>Fibonacci - Metode</h2>
+          <div class="two-col">
+            <div class="card">
+              <h3>Sequential <span class="pill">Baseline</span></h3>
+              <ul>
+                <li>Rekursif klasik: F(n)=F(n-1)+F(n-2)</li>
+                <li>Satu thread, overhead 0%</li>
+                <li>Digunakan sebagai acuan speedup</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>OpenMP <span class="pill">Task-based</span></h3>
+              <ul>
+                <li>Task untuk F(n-1); thread aktif kerjakan F(n-2)</li>
+                <li>Cutoff <code>n &lt; 20</code> dieksekusi sequential untuk hindari overhead</li>
+                <li>Metrik: speedup & efficiency</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card" style="margin-top:12px;">
+            <h3>OpenCilk <span class="pill">Work-Stealing</span></h3>
+            <ul>
+              <li><code>cilk_spawn</code> untuk F(n-1), <code>cilk_sync</code> gabung hasil</li>
+              <li>Scheduler work-stealing: worker idle mencuri task</li>
+              <li>Cutoff sama: sequential untuk n kecil</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2>Fibonacci - Demo (C Backend)</h2>
+          <div class="card">
+            <ol>
+              <li>Input n (0–45) + pilih mode: OpenMP, OpenCilk, atau keduanya.</li>
+              <li>UI memanggil <code>/api/fibonacci/:n?mode=...</code>.</li>
+              <li>Server jalankan binary C:
+                <ul>
+                  <li><code>fib_omp_json</code> (OpenMP, serial + parallel)</li>
+                  <li><code>fib_json_cilk</code> (OpenCilk, serial + parallel)</li>
+                </ul>
+              </li>
+              <li>JSON berisi sequential, openmp_serial, openmp_parallel, cilk_serial, cilk_parallel.</li>
+              <li>UI render: hasil, waktu, speedup, efficiency, cutoff, model.</li>
+            </ol>
+          </div>
+          <p style="font-size:0.75em;color:#666;margin-top:10px;">Tekan panah bawah untuk melanjutkan sub-slide demo.</p>
+        </section>
+
+        <section>
+          <h2>Fibonacci - Live Demo</h2>
+          <div class="card">
+            <p style="margin-bottom:10px;">Demo interaktif dari <code>index.html</code> (Fibonacci section). Pastikan backend C/Node sudah jalan.</p>
+            <iframe class="demo-frame" src="index.html"></iframe>
+          </div>
+          <p style="font-size:0.75em;color:#666;margin-top:10px;">Gunakan scroll/scrollbar di dalam frame untuk akses kontrolnya.</p>
+        </section>
+      </section>
+
+      <!-- Bilinear stack: konsep + demo -->
+      <section>
+        <section>
+          <h2>Bilinear Interpolation - Inti</h2>
+          <div class="card">
+            <ul>
+              <li>Rumus: f(x,y) = (1-fx)(1-fy)f00 + fx(1-fy)f10 + (1-fx)fy f01 + fx fy f11</li>
+              <li>Mapping dest→src:
+                <code>srcX = destX × (srcW/destW)</code>,
+                <code>srcY = destY × (srcH/destH)</code></li>
+              <li>Tetangga: f00, f10, f01, f11 (floor/ceil koordinat)</li>
+              <li>Fractional part: fx = srcX - floor(srcX), fy = srcY - floor(srcY)</li>
+              <li>Kompleksitas O(1) per piksel → sangat cepat</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2>Bilinear - Demo</h2>
+          <div class="two-col">
+            <div class="card">
+              <h3>Frontend</h3>
+              <ul>
+                <li>Pilih file (default: gantrycrane.png) atau path custom</li>
+                <li>Scaling 1.5×–4.0×</li>
+                <li>Tombol “Process with C Backend”</li>
+                <li>UI tampilkan ukuran asli/baru, waktu serial/parallel, speedup, throughput</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Backend C + OpenMP</h3>
+              <ul>
+                <li>Binary: <code>bilinear</code> (serial + parallel)</li>
+                <li>Output: result_serial.ppm/png</li>
+                <li>Metrik: waktu serial, waktu parallel (multi-thread), speedup, throughput (Mpixels/s)</li>
+                <li>Catatan: memory-bound → speedup dibatasi bandwidth memori</li>
+              </ul>
+            </div>
+          </div>
+          <p style="font-size:0.75em;color:#666;margin-top:10px;">Tekan panah bawah untuk sub-slide demo.</p>
+        </section>
+
+        <section>
+          <h2>Bilinear - Live Demo</h2>
+          <div class="card">
+            <p style="margin-bottom:10px;">Demo interaktif (bagian Bilinear di <code>index.html</code>). Pastikan server/API aktif.</p>
+            <iframe class="demo-frame" src="index.html#bilinear"></iframe>
+          </div>
+          <p style="font-size:0.75em;color:#666;margin-top:10px;">Gunakan scroll di frame untuk melihat kontrol dan hasil.</p>
+        </section>
+      </section>
+
+      <!-- Tooling -->
+      <section>
+        <h2>Tooling & Build</h2>
+        <div class="grid-3">
+          <div class="card">
+            <strong>Compile</strong>
+            <ul>
+              <li><code>gcc-15 -fopenmp -DUSE_OPENMP -o fib_omp_json fibonacci_json.c</code></li>
+              <li><code>&lt;opencilk-clang&gt; -fopencilk -DUSE_CILK -o fib_json_cilk fibonacci_json.c</code></li>
+              <li><code>gcc-15 -fopenmp -O3 -o bilinear bilinear_serial_parallel.c -lm</code></li>
+            </ul>
+          </div>
+          <div class="card">
+            <strong>Server</strong>
+            <ul>
+              <li>Node.js + Express</li>
+              <li>Endpoints:
+                <code>/api/fibonacci/:n?mode=</code>,
+                <code>/api/bilinear</code>
+              </li>
+              <li>Static: <code>index.html</code>, halaman detail</li>
+            </ul>
+          </div>
+          <div class="card">
+            <strong>UI</strong>
+            <ul>
+              <li>Fibonacci cards: sequential, OpenMP serial/parallel, Cilk serial/parallel</li>
+              <li>Bilinear: info ukuran, hasil serial/parallel, perbandingan gambar</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Penutup -->
+      <section>
+        <h2>Kesimpulan</h2>
+        <div class="card">
+          <ul>
+            <li>Fibonacci: parallel tasking (OpenMP/Cilk) memberi speedup signifikan untuk n besar; cutoff penting untuk kontrol overhead.</li>
+            <li>Bilinear: pipeline mapping → tetangga → fx,fy → kombinasi; OpenMP mempercepat tetapi dibatasi bandwidth memori.</li>
+            <li>Stack lengkap: C backend + Node API + UI interaktif memudahkan eksplorasi performa.</li>
+          </ul>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: true,
+      transition: "slide"
+    });
+  </script>
+</body>
+</html>

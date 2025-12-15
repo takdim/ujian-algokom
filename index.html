@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ALGOKOM Demo - Fibonacci & Bilinear Interpolation</title>
+    <title>ALGOKOM Demo - Fibonacci (C Backend) & Bilinear Interpolation</title>
     <style>
       * {
         margin: 0;
@@ -89,6 +89,12 @@
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
       }
 
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
       .results {
         margin-top: 20px;
         padding: 20px;
@@ -104,54 +110,97 @@
 
       .result-item {
         margin: 10px 0;
-        padding: 10px;
+        padding: 15px;
         background: white;
-        border-radius: 5px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
 
       .result-label {
         font-weight: bold;
-        color: #555;
+        color: #667eea;
+        font-size: 16px;
+        margin-bottom: 8px;
       }
 
-      .result-value {
-        color: #667eea;
-        font-family: "Courier New", monospace;
+      .result-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .detail-item {
+        background: #f8f9fa;
+        padding: 8px;
+        border-radius: 5px;
+      }
+
+      .detail-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 3px;
+      }
+
+      .detail-value {
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
       }
 
       .time-badge {
         background: #28a745;
         color: white;
-        padding: 4px 8px;
+        padding: 4px 12px;
         border-radius: 12px;
         font-size: 12px;
         margin-left: 10px;
       }
 
-      canvas {
-        border: 2px solid #ddd;
-        border-radius: 10px;
-        margin: 10px 5px;
-        background: #f8f9fa;
+      .speedup-badge {
+        background: #17a2b8;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        margin-left: 10px;
       }
 
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
-      }
-
-      .comparison {
+      .loading {
         text-align: center;
+        padding: 20px;
+        color: #667eea;
+        font-size: 16px;
       }
 
-      .comparison h4 {
-        color: #667eea;
-        margin: 10px 0;
+      .loading::after {
+        content: "...";
+        animation: dots 1.5s steps(4, end) infinite;
+      }
+
+      @keyframes dots {
+        0%,
+        20% {
+          content: ".";
+        }
+        40% {
+          content: "..";
+        }
+        60% {
+          content: "...";
+        }
+        80%,
+        100% {
+          content: "";
+        }
+      }
+
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #dc3545;
       }
 
       .info-box {
@@ -166,84 +215,194 @@
         color: #1976d2;
       }
 
-      .sequence-display {
-        background: white;
-        padding: 15px;
+      .c-badge {
+        background: #5c6ac4;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        margin-left: 8px;
+      }
+
+      .openmp-badge {
+        background: #ff6b6b;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        margin-left: 8px;
+      }
+
+      .cilk-badge {
+        background: #ff9ff3;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        margin-left: 8px;
+      }
+
+      canvas {
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        margin: 10px 5px;
+        background: #f8f9fa;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .comparison {
+        text-align: center;
+      }
+
+      .comparison h4 {
+        color: #667eea;
+        margin: 10px 0;
+        font-size: 16px;
+      }
+
+      .comparison img {
+        max-width: 100%;
+        height: auto;
+        display: block;
         border-radius: 8px;
-        margin-top: 15px;
-        font-family: "Courier New", monospace;
-        word-wrap: break-word;
-        border: 2px solid #667eea;
+      }
+
+      #originalImg {
+        width: 300px;
+        height: auto;
+      }
+
+      #upscaledImgSerial {
+        width: 480px;
+        height: auto;
+      }
+
+      #upscaledImgParallel {
+        width: 480px;
+        height: auto;
+      }
+
+      .comparison img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>🎯 ALGOKOM Interactive Demo</h1>
+      <h1>
+        🎯 ALGOKOM Interactive Demo <span class="c-badge">C Backend</span>
+      </h1>
+
+      <!-- NAVIGATION BUTTONS -->
+      <div
+        style="
+          display: flex;
+          gap: 10px;
+          justify-content: center;
+          margin-bottom: 30px;
+          flex-wrap: wrap;
+        "
+      >
+        <a href="fibonacci-details.html" style="text-decoration: none">
+          <button
+            style="
+              background: linear-gradient(135deg, #f57f17 0%, #ff6b6b 100%);
+              margin: 0;
+            "
+          >
+            📚 Fibonacci Methods Explained
+          </button>
+        </a>
+        <a href="bilinear-details.html" style="text-decoration: none">
+          <button
+            style="
+              background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+              margin: 0;
+            "
+          >
+            🎨 Bilinear Interpolation Details
+          </button>
+        </a>
+      </div>
 
       <!-- FIBONACCI SECTION -->
       <div class="demo-section">
-        <h2>📊 Fibonacci Calculator - Compare 4 Methods</h2>
+        <h2>📊 Fibonacci Calculator - OpenMP & OpenCilk Parallel Computing</h2>
+
+        <div class="info-box">
+          <strong>🚀 Powered by C, OpenMP, & OpenCilk!</strong><br />
+          Program ini menggunakan backend C dengan **dua parallel computing
+          models**: OpenMP (GCC) dan OpenCilk (work-stealing scheduler). Pilih
+          OpenMP saja, OpenCilk saja, atau jalankan keduanya sekaligus untuk
+          melihat perbandingan performanya.
+        </div>
 
         <div class="input-group">
           <label for="fibN">Enter n (0-45):</label>
-          <input type="number" id="fibN" min="0" max="45" value="20" />
+          <input type="number" id="fibN" min="0" max="45" value="35" />
         </div>
 
-        <button onclick="calculateFibonacci()">Calculate & Compare</button>
-        <button onclick="showSequence()">Show Sequence</button>
-        <button
-          onclick="window.location.href='fibonacci-details.html'"
-          style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%)"
-        >
-          📚 View Detailed Explanations
+        <div class="input-group">
+          <label for="fibMode">Mode:</label>
+          <select id="fibMode">
+            <option value="both" selected>
+              🔶 OpenMP + 🔷 OpenCilk (run both)
+            </option>
+            <option value="openmp">🔶 OpenMP only</option>
+            <option value="cilk">🔷 OpenCilk only</option>
+          </select>
+        </div>
+
+        <button onclick="calculateFibonacci()" id="calculateBtn">
+          Calculate (C Backend)
         </button>
 
         <div class="results" id="fibResults" style="display: none">
-          <h3>Results & Performance Comparison:</h3>
+          <h3>Results from C Program:</h3>
           <div id="fibOutput"></div>
         </div>
 
         <div
-          class="sequence-display"
-          id="sequenceDisplay"
-          style="display: none"
-        ></div>
-
-        <div class="info-box">
-          <strong>💡 Tip:</strong> Try different values! Notice how recursive
-          method becomes exponentially slower after n=30.
-          <strong style="color: #d32f2f">Warning:</strong>
-          For n > 40, recursive method may take several minutes to complete!
-          Compare the execution times!
+          class="info-box"
+          style="background: #d1ecf1; border-left-color: #17a2b8"
+        >
+          <strong style="color: #0c5460">💡 Available Implementations:</strong
+          ><br />
+          <strong>🔶 OpenMP Mode:</strong> Menggunakan GCC dengan fork-join task
+          model<br />
+          • Sequential: Baseline single-threaded<br />
+          • OpenMP Serial: Framework tanpa parallelization (overhead
+          measurement)<br />
+          • OpenMP Parallel: Multi-threaded dengan task parallelism<br />
+          <br />
+          <strong>🔷 OpenCilk Mode:</strong> Menggunakan OpenCilk compiler
+          dengan work-stealing scheduler<br />
+          • Cilk Serial: Single-threaded tanpa spawn<br />
+          • Cilk Parallel: Work-stealing task parallelism<br />
+          <br />
+          <strong>� Key Metrics:</strong><br />
+          • <strong>Speedup</strong>: Waktu Sequential / Waktu Parallel<br />
+          • <strong>Efficiency</strong>: (Speedup / Jumlah Thread) × 100%<br />
+          • <strong>Cutoff</strong>: Threshold untuk menghindari overhead task
+          creation<br />
         </div>
 
         <!-- Algorithm Explanations -->
         <div style="margin-top: 30px">
           <h3 style="color: #667eea; margin-bottom: 15px">
-            📚 Algorithm Explanations
+            📚 Parallel Computing Concepts
           </h3>
-
-          <div
-            style="
-              background: #fff3cd;
-              padding: 15px;
-              border-radius: 8px;
-              margin-bottom: 10px;
-              border-left: 4px solid #ffc107;
-            "
-          >
-            <strong style="color: #856404">1. Recursive (Naive)</strong>
-            <p style="margin: 8px 0 0 0; color: #333">
-              <strong>Cara Kerja:</strong> Memanggil diri sendiri 2x untuk
-              setiap n. F(n) = F(n-1) + F(n-2)<br />
-              <strong>Kompleksitas:</strong> O(2^n) waktu, O(n) space<br />
-              <strong>Kelebihan:</strong> Mudah dipahami, sesuai definisi
-              matematika<br />
-              <strong>Kelemahan:</strong> Sangat lambat! Menghitung nilai sama
-              berkali-kali
-            </p>
-          </div>
 
           <div
             style="
@@ -254,37 +413,31 @@
               border-left: 4px solid #28a745;
             "
           >
-            <strong style="color: #155724"
-              >2. Dynamic Programming (Bottom-Up)</strong
-            >
+            <strong style="color: #155724">Sequential Execution</strong>
             <p style="margin: 8px 0 0 0; color: #333">
-              <strong>Cara Kerja:</strong> Menyimpan semua nilai dari 0 sampai n
-              dalam array<br />
-              <strong>Kompleksitas:</strong> O(n) waktu, O(n) space<br />
-              <strong>Kelebihan:</strong> Cepat, bisa akses semua nilai kapan
-              saja<br />
-              <strong>Kelemahan:</strong> Butuh memory untuk simpan semua nilai
+              <strong>Cara Kerja:</strong> Satu thread menghitung semua secara
+              berurutan<br />
+              <strong>Kelebihan:</strong> Simple, predictable, no overhead<br />
+              <strong>Kelemahan:</strong> Tidak memanfaatkan multi-core
+              processor
             </p>
           </div>
 
           <div
             style="
-              background: #d1ecf1;
+              background: #fff3cd;
               padding: 15px;
               border-radius: 8px;
               margin-bottom: 10px;
-              border-left: 4px solid #17a2b8;
+              border-left: 4px solid #ffc107;
             "
           >
-            <strong style="color: #0c5460"
-              >3. Space Optimized (Iterative)</strong
-            >
+            <strong style="color: #856404">OpenMP Serial</strong>
             <p style="margin: 8px 0 0 0; color: #333">
-              <strong>Cara Kerja:</strong> Hanya menyimpan 2 nilai terakhir
-              (prev & curr)<br />
-              <strong>Kompleksitas:</strong> O(n) waktu, O(1) space<br />
-              <strong>Kelebihan:</strong> Paling hemat memory! Tetap cepat<br />
-              <strong>Kelemahan:</strong> Hanya bisa dapat nilai akhir
+              <strong>Cara Kerja:</strong> Menggunakan OpenMP framework tapi
+              tanpa task parallelism<br />
+              <strong>Tujuan:</strong> Mengukur overhead dari OpenMP runtime<br />
+              <strong>Overhead:</strong> Biasanya 0-2% (sangat minimal)
             </p>
           </div>
 
@@ -296,25 +449,54 @@
               border-left: 4px solid #7b42bc;
             "
           >
-            <strong style="color: #4a148c">4. Matrix Exponentiation</strong>
+            <strong style="color: #4a148c">OpenMP Parallel (Task-Based)</strong>
             <p style="margin: 8px 0 0 0; color: #333">
-              <strong>Cara Kerja:</strong> Menggunakan perkalian matrix
-              [[1,1],[1,0]]^n dengan fast power<br />
-              <strong>Kompleksitas:</strong> O(log n) waktu, O(log n) space<br />
-              <strong>Kelebihan:</strong> TERCEPAT untuk n sangat besar!
-              Logaritmik<br />
-              <strong>Kelemahan:</strong> Kompleks, butuh pemahaman aljabar
-              linear
+              <strong>Cara Kerja:</strong> Fork-Join model dengan task
+              dependency<br />
+              <strong>Model:</strong> #pragma omp task untuk spawn parallel
+              tasks<br />
+              <strong>Cutoff Strategy:</strong> Sequential untuk n < 20
+              (menghindari overhead)<br />
+              <strong>Work-Stealing:</strong> Threads mencuri task dari antrian
+              lain<br />
+              <strong>Keunggulan:</strong> Load balancing otomatis, skalabilitas
+              baik
+            </p>
+          </div>
+
+          <div
+            style="
+              background: #f8d7da;
+              padding: 15px;
+              border-radius: 8px;
+              border-left: 4px solid #dc3545;
+            "
+          >
+            <strong style="color: #721c24"
+              >Cilk Parallel (Work-Stealing)</strong
+            >
+            <p style="margin: 8px 0 0 0; color: #333">
+              <strong>Cara Kerja:</strong> Spawn tasks dengan work-stealing
+              scheduler<br />
+              <strong>Model:</strong> cilk_spawn untuk spawn parallel tasks<br />
+              <strong>Synchronization:</strong> cilk_sync untuk wait tasks<br />
+              <strong>Cutoff Strategy:</strong> Sequential untuk n < 20
+              (menghindari overhead)<br />
+              <strong>Work-Stealing Scheduler:</strong> Idle threads mencuri
+              task dari busy threads<br />
+              <strong>Keunggulan:</strong> Optimal load balancing,
+              cache-friendly, minimal overhead<br />
+              <strong>Formula:</strong> T_P ≈ W/P + D (W=total work,
+              P=processors, D=depth)
             </p>
           </div>
         </div>
       </div>
 
-      <!-- BILINEAR INTERPOLATION SECTION -->
+      <!-- BILINEAR INTERPOLATION SECTION - C BACKEND -->
       <div class="demo-section">
-        <h2>🎨 Bilinear Interpolation - Visual Demo</h2>
+        <h2>🎨 Bilinear Interpolation - Image Upscaling (C + OpenMP)</h2>
 
-        <!-- Introduction Box -->
         <div
           style="
             margin-bottom: 25px;
@@ -325,614 +507,708 @@
           "
         >
           <h3 style="color: #667eea; margin-bottom: 10px">
-            📖 Apa itu Bilinear Interpolation?
+            📖 Bilinear Interpolation untuk Image Upscaling
           </h3>
           <p style="color: #333; line-height: 1.8; margin-bottom: 10px">
-            <strong>Bilinear Interpolation</strong> adalah teknik matematika
-            untuk mengestimasi nilai pada titik mana pun di dalam area 2D
-            berdasarkan nilai 4 titik corner di sekitarnya. Teknik ini digunakan
-            secara luas dalam <strong>image processing</strong>, terutama untuk
-            <strong>resizing gambar</strong> atau <strong>zoom</strong>.
+            <strong>Bilinear Interpolation</strong> adalah teknik image
+            processing untuk memperbesar (zoom) gambar dengan mengestimasi nilai
+            pixel baru berdasarkan 4 pixel terdekat dari image original.
+            Hasilnya lebih smooth dibanding Nearest Neighbor.
           </p>
-          <p style="color: #333; line-height: 1.8">
-            <strong>🎯 Prinsip Kerja:</strong> Interpolasi dilakukan dalam 2
-            arah (x dan y), memberikan hasil yang
-            <strong>smooth dan natural</strong> dibandingkan metode sederhana
-            seperti Nearest Neighbor.
-          </p>
-        </div>
-
-        <div class="input-group">
-          <label>Corner Values (Q11, Q12, Q21, Q22):</label>
-          <div class="grid">
-            <div>
-              <label>Q11 (Bottom-Left):</label>
-              <input
-                type="range"
-                id="q11"
-                min="0"
-                max="255"
-                value="0"
-                oninput="updateInterpolation()"
-              />
-              <span id="q11val">0</span>
-            </div>
-            <div>
-              <label>Q12 (Top-Left):</label>
-              <input
-                type="range"
-                id="q12"
-                min="0"
-                max="255"
-                value="100"
-                oninput="updateInterpolation()"
-              />
-              <span id="q12val">100</span>
-            </div>
-            <div>
-              <label>Q21 (Bottom-Right):</label>
-              <input
-                type="range"
-                id="q21"
-                min="0"
-                max="255"
-                value="200"
-                oninput="updateInterpolation()"
-              />
-              <span id="q21val">200</span>
-            </div>
-            <div>
-              <label>Q22 (Top-Right):</label>
-              <input
-                type="range"
-                id="q22"
-                min="0"
-                max="255"
-                value="255"
-                oninput="updateInterpolation()"
-              />
-              <span id="q22val">255</span>
-            </div>
-          </div>
-        </div>
-
-        <div style="text-align: center; margin: 20px 0">
-          <button
-            onclick="window.location.href='bilinear-details.html'"
-            style="
-              background: linear-gradient(135deg, #2196f3 0%, #00bcd4 100%);
-            "
-          >
-            📚 View Detailed Explanation
-          </button>
-        </div>
-
-        <div class="grid">
-          <div class="comparison">
-            <h4>Nearest Neighbor</h4>
-            <canvas id="nearestCanvas" width="200" height="200"></canvas>
-          </div>
-          <div class="comparison">
-            <h4>Bilinear Interpolation</h4>
-            <canvas id="bilinearCanvas" width="200" height="200"></canvas>
-          </div>
-        </div>
-
-        <div class="input-group" style="margin-top: 20px">
-          <label>Test Point Coordinates:</label>
-          <div class="grid">
-            <div>
-              <label>X Position (0-200):</label>
-              <input
-                type="range"
-                id="testX"
-                min="0"
-                max="200"
-                value="50"
-                oninput="updateInterpolation()"
-              />
-              <span id="testXval">50</span>
-            </div>
-            <div>
-              <label>Y Position (0-200):</label>
-              <input
-                type="range"
-                id="testY"
-                min="0"
-                max="200"
-                value="50"
-                oninput="updateInterpolation()"
-              />
-              <span id="testYval">50</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="results" style="display: block">
-          <h3>Test Point Calculation:</h3>
-          <div class="result-item">
-            <span class="result-label">Test Point (pixel):</span>
-            <span class="result-value" id="testPointPixel">x=50, y=50</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Test Point (normalized):</span>
-            <span class="result-value" id="testPointNorm">x=0.25, y=0.25</span>
-          </div>
-
-          <!-- Formula Display -->
-          <div
-            style="
-              margin: 15px 0;
-              padding: 15px;
-              background: #fff3e0;
-              border-radius: 8px;
-              border-left: 4px solid #ff9800;
-            "
-          >
-            <strong style="color: #e65100"
-              >📐 Rumus Bilinear Interpolation:</strong
-            >
-            <div
-              style="
-                margin-top: 10px;
-                padding: 10px;
-                background: white;
-                border-radius: 5px;
-                font-family: 'Courier New', monospace;
-                font-size: 13px;
-                overflow-x: auto;
-              "
-            >
-              <strong
-                >f(x,y) = (1-x)(1-y)Q₁₁ + x(1-y)Q₂₁ + (1-x)yQ₁₂ + xyQ₂₂</strong
-              >
-            </div>
-            <div
-              id="formulaBreakdown"
-              style="margin-top: 10px; font-size: 12px; color: #333"
-            ></div>
-          </div>
-
-          <div class="result-item">
-            <span class="result-label">Interpolated Value:</span>
-            <span class="result-value" id="interpValue">-</span>
-          </div>
-
-          <div
-            style="
-              margin-top: 10px;
-              padding: 10px;
-              background: #e3f2fd;
-              border-radius: 5px;
-              font-size: 12px;
-            "
-          >
-            <strong>💡 Penjelasan:</strong><br />
-            • Test point adalah titik yang kita hitung nilainya<br />
-            • Nilai dihitung dari
-            <strong>weighted average 4 corner (Q11, Q12, Q21, Q22)</strong
-            ><br />
-            • Semakin dekat ke corner, semakin <strong>besar weight-nya</strong
-            ><br />
-            • <strong>Coba ubah Q11-Q22</strong> dan lihat nilai test point
-            berubah!<br />
-            • <strong>Coba geser test point</strong> ke corner dan lihat
-            nilainya mendekati corner tersebut!
-          </div>
         </div>
 
         <div class="info-box">
-          <strong>💡 Observation:</strong>
-          Move the sliders to see how bilinear interpolation creates smooth
-          gradients compared to nearest neighbor's blocky appearance.
+          <strong>🚀 Powered by C & OpenMP!</strong><br />
+          Program C backend melakukan real image resizing dengan bilinear
+          interpolation menggunakan OpenMP untuk parallel processing.
         </div>
 
-        <!-- Algorithm Explanations -->
-        <div style="margin-top: 30px">
-          <h3 style="color: #667eea; margin-bottom: 15px">
-            📚 Algorithm Explanations
-          </h3>
+        <div class="input-group">
+          <label>Image File:</label>
+          <select id="imageFile" onchange="updateImageInfo()">
+            <option value="gantrycrane.png" selected>
+              Gantry Crane (Default)
+            </option>
+            <option value="custom">Custom File (path)</option>
+          </select>
+          <input
+            type="text"
+            id="customImagePath"
+            placeholder="Enter image path (PNG)"
+            style="display: none; margin-top: 10px"
+          />
+        </div>
 
-          <div
-            style="
-              background: #ffe6e6;
-              padding: 15px;
-              border-radius: 8px;
-              margin-bottom: 10px;
-              border-left: 4px solid #dc3545;
-            "
-          >
-            <strong style="color: #721c24">Nearest Neighbor</strong>
-            <p style="margin: 8px 0 0 0; color: #333">
-              <strong>Cara Kerja:</strong> Pilih nilai pixel terdekat tanpa
-              interpolasi<br />
-              <strong>Kompleksitas:</strong> O(1) per pixel<br />
-              <strong>Kelebihan:</strong> Sangat cepat, simple<br />
-              <strong>Kelemahan:</strong> Hasil kotak-kotak (pixelated),
-              kualitas rendah<br />
-              <strong>Use Case:</strong> Icon kecil, pixel art, zoom integer
+        <div class="input-group">
+          <label>Scaling Factor (1.5x - 4.0x):</label>
+          <input
+            type="range"
+            id="scalingFactor"
+            min="1.5"
+            max="4.0"
+            step="0.5"
+            value="2.0"
+            oninput="updateScalingInfo()"
+          />
+          <span id="scalingVal">2.0</span>x
+        </div>
+
+        <div
+          id="imageInfo"
+          style="
+            display: none;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+          "
+        >
+          <div>
+            <strong>Original Size:</strong> <span id="origWidth">-</span> ×
+            <span id="origHeight">-</span> pixels
+          </div>
+          <div>
+            <strong>Upscaled Size:</strong> <span id="newWidth">-</span> ×
+            <span id="newHeight">-</span> pixels
+          </div>
+          <div>
+            <strong>Estimated Time:</strong>
+            <span id="estimatedTime">-</span> ms
+          </div>
+        </div>
+
+        <button onclick="processImageBilinear()" id="processBtn">
+          🚀 Process with C Backend (Serial & Parallel Auto)
+        </button>
+
+        <div class="results" id="bilinearResults" style="display: none">
+          <h3>Image Processing Results:</h3>
+          <div id="bilinearOutput"></div>
+        </div>
+
+        <div
+          class="grid"
+          id="imageComparison"
+          style="display: none; margin-top: 30px"
+        >
+          <div class="comparison">
+            <h4>Original Image</h4>
+            <img
+              id="originalImg"
+              src=""
+              alt="Original"
+              style="
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                max-width: 100%;
+                height: auto;
+              "
+            />
+            <p
+              style="font-size: 12px; color: #666; margin-top: 5px"
+              id="origSize"
+            >
+              -
             </p>
           </div>
-
-          <div
-            style="
-              background: #d4edda;
-              padding: 15px;
-              border-radius: 8px;
-              border-left: 4px solid #28a745;
-            "
-          >
-            <strong style="color: #155724">Bilinear Interpolation</strong>
-            <p style="margin: 8px 0 0 0; color: #333">
-              <strong>Cara Kerja:</strong> Interpolasi linear di 2 arah (x dan
-              y) dari 4 pixel tetangga<br />
-              <strong>Rumus:</strong> f(x,y) = (1-x)(1-y)Q11 + x(1-y)Q21 +
-              (1-x)yQ12 + xyQ22<br />
-              <strong>Kompleksitas:</strong> O(1) per pixel<br />
-              <strong>Kelebihan:</strong> Smooth, natural, balance speed vs
-              quality<br />
-              <strong>Kelemahan:</strong> Sedikit blur untuk edge<br />
-              <strong>Use Case:</strong> Image resizing, zoom foto, thumbnails
+          <div class="comparison">
+            <h4>Serial Result</h4>
+            <img
+              id="upscaledImgSerial"
+              src=""
+              alt="Upscaled Serial"
+              style="
+                border: 2px solid #28a745;
+                border-radius: 8px;
+                max-width: 100%;
+                height: auto;
+              "
+            />
+            <p
+              style="
+                font-size: 12px;
+                color: #28a745;
+                margin-top: 5px;
+                font-weight: bold;
+              "
+              id="serialTime"
+            >
+              -
             </p>
           </div>
-
-          <div
-            style="
-              background: #e3f2fd;
-              padding: 15px;
-              border-radius: 8px;
-              border-left: 4px solid #2196f3;
-            "
-          >
-            <strong style="color: #0d47a1">💡 Perbandingan</strong>
-            <p style="margin: 8px 0 0 0; color: #333">
-              • Nearest Neighbor = Ambil 1 pixel → Hasil blocky<br />
-              • Bilinear = Rata-rata weighted dari 4 pixel → Hasil smooth<br />
+          <div class="comparison">
+            <h4>Parallel Result (8-Thread)</h4>
+            <img
+              id="upscaledImgParallel"
+              src=""
+              alt="Upscaled Parallel"
+              style="
+                border: 2px solid #ff6b6b;
+                border-radius: 8px;
+                max-width: 100%;
+                height: auto;
+              "
+            />
+            <p
+              style="
+                font-size: 12px;
+                color: #ff6b6b;
+                margin-top: 5px;
+                font-weight: bold;
+              "
+              id="parallelTime"
+            >
+              -
             </p>
           </div>
         </div>
-      </div>
 
-      <!-- COMPARISON SECTION -->
-      <div class="demo-section">
-        <h2>⚖️ Algorithm Comparison Summary</h2>
-
-        <div class="grid">
-          <div style="background: #e8f5e9; padding: 15px; border-radius: 8px">
-            <h3 style="color: #2e7d32">Fibonacci</h3>
-            <p><strong>Best for Speed:</strong> Matrix Exponentiation</p>
-            <p><strong>Best for Memory:</strong> Space Optimized</p>
-            <p><strong>Best for Learning:</strong> DP Memoization</p>
-            <p><strong>Range:</strong> O(1) to O(2^n)</p>
-          </div>
-
-          <div style="background: #e3f2fd; padding: 15px; border-radius: 8px">
-            <h3 style="color: #1565c0">Bilinear</h3>
-            <p><strong>Complexity:</strong> O(1) per pixel</p>
-            <p><strong>Quality:</strong> Good balance</p>
-            <p><strong>Use Case:</strong> Image resizing</p>
-            <p><strong>Alternative:</strong> Bicubic (slower, smoother)</p>
-          </div>
+        <div
+          style="
+            margin-top: 25px;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border-left: 5px solid #ffc107;
+          "
+        >
+          <h3 style="color: #856404; margin-bottom: 10px">📚 How It Works</h3>
+          <p style="color: #333; line-height: 1.8; margin-bottom: 10px">
+            <strong>1. Read PNG Image</strong> - Load original image via
+            ImageMagick<br />
+            <strong>2. Bilinear Interpolation</strong> - For each new pixel,
+            interpolate from 4 nearest neighbors<br />
+            <strong>3. Serial vs Parallel</strong> - Compare performance between
+            single-threaded and multi-threaded versions<br />
+            <strong>4. Memory-Bound Algorithm</strong> - Speedup limited by
+            memory bandwidth, not CPU cores<br />
+            <strong>5. Output</strong> - Save upscaled image as PPM/PNG
+          </p>
         </div>
       </div>
     </div>
 
     <script>
-      // FIBONACCI IMPLEMENTATIONS
-      function fibRecursive(n) {
-        if (n <= 1) return n;
-        return fibRecursive(n - 1) + fibRecursive(n - 2);
-      }
-
-      function fibDP(n) {
-        if (n <= 1) return n;
-        let dp = [0, 1];
-        for (let i = 2; i <= n; i++) {
-          dp[i] = dp[i - 1] + dp[i - 2];
-        }
-        return dp[n];
-      }
-
-      function fibOptimized(n) {
-        if (n <= 1) return n;
-        let prev = 0,
-          curr = 1;
-        for (let i = 2; i <= n; i++) {
-          [prev, curr] = [curr, prev + curr];
-        }
-        return curr;
-      }
-
-      function fibMatrix(n) {
-        if (n <= 1) return n;
-
-        function matMul(a, b) {
-          return [
-            [
-              a[0][0] * b[0][0] + a[0][1] * b[1][0],
-              a[0][0] * b[0][1] + a[0][1] * b[1][1],
-            ],
-            [
-              a[1][0] * b[0][0] + a[1][1] * b[1][0],
-              a[1][0] * b[0][1] + a[1][1] * b[1][1],
-            ],
-          ];
-        }
-
-        function matPow(m, p) {
-          if (p === 1) return m;
-          if (p % 2 === 0) {
-            let half = matPow(m, p / 2);
-            return matMul(half, half);
-          }
-          return matMul(m, matPow(m, p - 1));
-        }
-
-        let base = [
-          [1, 1],
-          [1, 0],
-        ];
-        let result = matPow(base, n);
-        return result[0][1];
-      }
-
-      function calculateFibonacci() {
+      // ==================== FIBONACCI dengan C BACKEND ====================
+      async function calculateFibonacci() {
         const n = parseInt(document.getElementById("fibN").value);
+        const mode = "both";
         const output = document.getElementById("fibOutput");
         const results = document.getElementById("fibResults");
+        const btn = document.getElementById("calculateBtn");
 
-        output.innerHTML = "";
+        // Validasi input
+        if (isNaN(n) || n < 0 || n > 45) {
+          output.innerHTML =
+            '<div class="error">❌ Invalid input. N must be between 0 and 45</div>';
+          results.style.display = "block";
+          return;
+        }
+
+        // Show loading
+        btn.disabled = true;
+        btn.textContent = "Running OpenMP + OpenCilk...";
+        output.innerHTML = '<div class="loading">Executing C program</div>';
         results.style.display = "block";
 
-        const methods = [
-          { name: "Recursive", func: fibRecursive, skip: false },
-          { name: "DP Bottom-Up", func: fibDP, skip: false },
-          { name: "Space Optimized", func: fibOptimized, skip: false },
-          { name: "Matrix Exponentiation", func: fibMatrix, skip: false },
-        ];
+        try {
+          // Call C backend via Node.js API with mode parameter
+          const response = await fetch(
+            `http://localhost:3000/api/fibonacci/${n}?mode=${mode}`
+          );
 
-        methods.forEach((method) => {
-          const item = document.createElement("div");
-          item.className = "result-item";
-
-          if (method.skip) {
-            item.innerHTML = `
-                        <span class="result-label">${method.name}:</span>
-                        <span style="color:#dc3545;">SKIPPED</span>
-                    `;
-          } else {
-            // Jalankan berkali-kali untuk pengukuran yang lebih akurat
-            // Recursive: 1x saja (karena bisa sangat lambat)
-            // Lainnya: 1000x untuk hasil lebih akurat
-            const runs = method.name === "Recursive" ? 1 : 1000;
-            let totalTime = 0;
-            let result;
-
-            for (let i = 0; i < runs; i++) {
-              const start = performance.now();
-              result = method.func(n);
-              totalTime += performance.now() - start;
-            }
-
-            const avgTimeMs = totalTime / runs;
-
-            // Format waktu dengan presisi tinggi untuk melihat perbedaan
-            let timeDisplay;
-            if (avgTimeMs < 0.001) {
-              timeDisplay = `${(avgTimeMs * 1000).toFixed(4)} μs`;
-            } else if (avgTimeMs < 0.01) {
-              timeDisplay = `${avgTimeMs.toFixed(6)} ms`;
-            } else if (avgTimeMs < 1) {
-              timeDisplay = `${avgTimeMs.toFixed(4)} ms`;
-            } else if (avgTimeMs < 1000) {
-              timeDisplay = `${avgTimeMs.toFixed(3)} ms`;
-            } else {
-              timeDisplay = `${(avgTimeMs / 1000).toFixed(3)} s`;
-            }
-
-            item.innerHTML = `
-                        <span class="result-label">${method.name}:</span>
-                        <div>
-                            <span class="result-value">${result}</span>
-                            <span class="time-badge">${timeDisplay}</span>
-                            <span style="font-size: 10px; color: #888; margin-left: 5px;">(avg ${runs}x)</span>
-                        </div>
-                    `;
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-          output.appendChild(item);
-        });
-      }
+          const data = await response.json();
 
-      function showSequence() {
-        const n = parseInt(document.getElementById("fibN").value);
-        const display = document.getElementById("sequenceDisplay");
-
-        let sequence = [];
-        for (let i = 0; i <= n; i++) {
-          sequence.push(fibOptimized(i));
+          // Display results
+          displayFibonacciResults(data);
+        } catch (error) {
+          output.innerHTML = `
+            <div class="error">
+              <strong>❌ Error connecting to C backend:</strong><br>
+              ${error.message}<br><br>
+              <strong>Make sure the server is running:</strong><br>
+              <code>npm start</code>
+            </div>
+          `;
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Calculate OpenMP + OpenCilk (C Backend)";
         }
-
-        display.innerHTML = `<strong>Fibonacci Sequence [0 to ${n}]:</strong><br>${sequence.join(
-          ", "
-        )}`;
-        display.style.display = "block";
       }
 
-      // BILINEAR INTERPOLATION
-      function bilinearInterpolate(x, y, q11, q12, q21, q22) {
-        // Assuming unit square (0,0) to (1,1)
-        const r1 = q11 * (1 - x) + q21 * x;
-        const r2 = q12 * (1 - x) + q22 * x;
-        return r1 * (1 - y) + r2 * y;
-      }
+      function displayFibonacciResults(data) {
+        const output = document.getElementById("fibOutput");
+        let html = "";
 
-      function updateInterpolation() {
-        const q11 = parseInt(document.getElementById("q11").value);
-        const q12 = parseInt(document.getElementById("q12").value);
-        const q21 = parseInt(document.getElementById("q21").value);
-        const q22 = parseInt(document.getElementById("q22").value);
-
-        document.getElementById("q11val").textContent = q11;
-        document.getElementById("q12val").textContent = q12;
-        document.getElementById("q21val").textContent = q21;
-        document.getElementById("q22val").textContent = q22;
-
-        // Get test point coordinates
-        const testXPixel = parseInt(document.getElementById("testX").value);
-        const testYPixel = parseInt(document.getElementById("testY").value);
-
-        document.getElementById("testXval").textContent = testXPixel;
-        document.getElementById("testYval").textContent = testYPixel;
-
-        // Convert to normalized coordinates (0-1)
-        const testX = testXPixel / 200;
-        const testY = testYPixel / 200;
-
-        // Update display
-        document.getElementById(
-          "testPointPixel"
-        ).textContent = `x=${testXPixel}, y=${testYPixel}`;
-        document.getElementById(
-          "testPointNorm"
-        ).textContent = `x=${testX.toFixed(2)}, y=${testY.toFixed(2)}`;
-
-        // Draw nearest neighbor
-        const nearestCanvas = document.getElementById("nearestCanvas");
-        const nearestCtx = nearestCanvas.getContext("2d");
-        drawNearest(nearestCtx, q11, q12, q21, q22);
-
-        // Draw bilinear
-        const bilinearCanvas = document.getElementById("bilinearCanvas");
-        const bilinearCtx = bilinearCanvas.getContext("2d");
-        drawBilinear(bilinearCtx, q11, q12, q21, q22);
-
-        // Draw test point marker on both canvases
-        drawTestPointMarker(nearestCtx, testXPixel, testYPixel);
-        drawTestPointMarker(bilinearCtx, testXPixel, testYPixel);
-
-        // Calculate test point value (flip y for calculation)
-        const testValue = bilinearInterpolate(
-          testX,
-          1 - testY,
-          q11,
-          q12,
-          q21,
-          q22
-        );
-        document.getElementById("interpValue").textContent =
-          testValue.toFixed(2);
-
-        // Display formula breakdown
-        const x = testX;
-        const y = 1 - testY; // flipped for calculation
-
-        const term1 = (1 - x) * (1 - y) * q11;
-        const term2 = x * (1 - y) * q21;
-        const term3 = (1 - x) * y * q12;
-        const term4 = x * y * q22;
-
-        const weight1 = (1 - x) * (1 - y);
-        const weight2 = x * (1 - y);
-        const weight3 = (1 - x) * y;
-        const weight4 = x * y;
-
-        document.getElementById("formulaBreakdown").innerHTML = `
-          <div style="margin: 5px 0;">
-            <strong>Substitusi nilai:</strong><br>
-            f(${testX.toFixed(2)}, ${y.toFixed(2)}) = 
-            (${(1 - x).toFixed(2)})(${(1 - y).toFixed(2)})×${q11} + 
-            (${x.toFixed(2)})(${(1 - y).toFixed(2)})×${q21} + 
-            (${(1 - x).toFixed(2)})(${y.toFixed(2)})×${q12} + 
-            (${x.toFixed(2)})(${y.toFixed(2)})×${q22}
-          </div>
-          <div style="margin: 10px 0; padding: 10px; background: #f0f8ff; border-radius: 5px;">
-            <strong>Step-by-step:</strong><br>
-            <span style="color: #dc3545;">• Term 1 (Q₁₁): ${weight1.toFixed(
-              4
-            )} × ${q11} = <strong>${term1.toFixed(2)}</strong></span><br>
-            <span style="color: #ffc107;">• Term 2 (Q₂₁): ${weight2.toFixed(
-              4
-            )} × ${q21} = <strong>${term2.toFixed(2)}</strong></span><br>
-            <span style="color: #28a745;">• Term 3 (Q₁₂): ${weight3.toFixed(
-              4
-            )} × ${q12} = <strong>${term3.toFixed(2)}</strong></span><br>
-            <span style="color: #17a2b8;">• Term 4 (Q₂₂): ${weight4.toFixed(
-              4
-            )} × ${q22} = <strong>${term4.toFixed(2)}</strong></span>
-          </div>
-          <div style="margin-top: 10px; padding: 10px; background: #fff; border: 2px solid #667eea; border-radius: 5px;">
-            <strong style="color: #667eea; font-size: 14px;">
-              ✅ TOTAL = ${term1.toFixed(2)} + ${term2.toFixed(
-          2
-        )} + ${term3.toFixed(2)} + ${term4.toFixed(2)} = ${testValue.toFixed(2)}
-            </strong>
+        // Sequential
+        html += `
+          <div class="result-item">
+            <div class="result-label">1. Pure Sequential (Baseline) <span class="c-badge">C</span></div>
+            <div class="result-details">
+              <div class="detail-item">
+                <div class="detail-label">Result</div>
+                <div class="detail-value">${data.sequential.result}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Time</div>
+                <div class="detail-value">${(
+                  data.sequential.time * 1000
+                ).toFixed(3)} ms</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Speedup</div>
+                <div class="detail-value">${data.sequential.speedup}x</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Efficiency</div>
+                <div class="detail-value">${data.sequential.efficiency}%</div>
+              </div>
+            </div>
           </div>
         `;
-      }
 
-      function drawTestPointMarker(ctx, x, y) {
-        // Draw a red circle at test point
-        ctx.fillStyle = "red";
-        ctx.beginPath();
-        ctx.arc(x, y, 5, 0, 2 * Math.PI);
-        ctx.fill();
-
-        // Draw crosshair
-        ctx.strokeStyle = "red";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x - 10, y);
-        ctx.lineTo(x + 10, y);
-        ctx.moveTo(x, y - 10);
-        ctx.lineTo(x, y + 10);
-        ctx.stroke();
-      }
-
-      function drawNearest(ctx, q11, q12, q21, q22) {
-        const size = 200;
-        ctx.clearRect(0, 0, size, size);
-
-        // Draw 4 quadrants
-        ctx.fillStyle = `rgb(${q11}, ${q11}, ${q11})`;
-        ctx.fillRect(0, size / 2, size / 2, size / 2);
-
-        ctx.fillStyle = `rgb(${q12}, ${q12}, ${q12})`;
-        ctx.fillRect(0, 0, size / 2, size / 2);
-
-        ctx.fillStyle = `rgb(${q21}, ${q21}, ${q21})`;
-        ctx.fillRect(size / 2, size / 2, size / 2, size / 2);
-
-        ctx.fillStyle = `rgb(${q22}, ${q22}, ${q22})`;
-        ctx.fillRect(size / 2, 0, size / 2, size / 2);
-      }
-
-      function drawBilinear(ctx, q11, q12, q21, q22) {
-        const size = 200;
-        ctx.clearRect(0, 0, size, size);
-
-        const imageData = ctx.createImageData(size, size);
-
-        for (let i = 0; i < size; i++) {
-          for (let j = 0; j < size; j++) {
-            const x = j / (size - 1);
-            const y = 1 - i / (size - 1); // Flip y
-
-            const value = bilinearInterpolate(x, y, q11, q12, q21, q22);
-
-            const idx = (i * size + j) * 4;
-            imageData.data[idx] = value;
-            imageData.data[idx + 1] = value;
-            imageData.data[idx + 2] = value;
-            imageData.data[idx + 3] = 255;
-          }
+        // OpenMP Serial (if available)
+        if (data.openmp_serial) {
+          const ompOverhead = Math.max(0, data.openmp_serial.overhead);
+          html += `
+            <div class="result-item">
+              <div class="result-label">2. OpenMP Serial (No Tasking) <span class="openmp-badge">OpenMP</span></div>
+              <div class="result-details">
+                <div class="detail-item">
+                  <div class="detail-label">Result</div>
+                  <div class="detail-value">${data.openmp_serial.result}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Time</div>
+                  <div class="detail-value">${(
+                    data.openmp_serial.time * 1000
+                  ).toFixed(3)} ms</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Speedup</div>
+                  <div class="detail-value">${data.openmp_serial.speedup}x</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Overhead</div>
+                  <div class="detail-value">${ompOverhead.toFixed(2)}%</div>
+                </div>
+              </div>
+            </div>
+          `;
         }
 
-        ctx.putImageData(imageData, 0, 0);
+        // OpenMP Parallel (if available)
+        if (data.openmp_parallel) {
+          html += `
+            <div class="result-item" style="border-left: 4px solid #28a745;">
+              <div class="result-label">3. OpenMP Parallel (Task-Based) <span class="openmp-badge">OpenMP</span></div>
+              <div class="result-details">
+                <div class="detail-item">
+                  <div class="detail-label">Result</div>
+                  <div class="detail-value">${data.openmp_parallel.result}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Time</div>
+                  <div class="detail-value">${(
+                    data.openmp_parallel.time * 1000
+                  ).toFixed(3)} ms</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Speedup</div>
+                  <div class="detail-value" style="color: #28a745;">${
+                    data.openmp_parallel.speedup
+                  }x ⚡</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Efficiency</div>
+                  <div class="detail-value">${data.openmp_parallel.efficiency.toFixed(
+                    2
+                  )}%</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Threads</div>
+                  <div class="detail-value">${data.num_threads}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Cutoff</div>
+                  <div class="detail-value">${data.openmp_parallel.cutoff}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Model</div>
+                  <div class="detail-value" style="font-size: 11px;">${
+                    data.openmp_parallel.model
+                  }</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        // Cilk Serial (if available)
+        if (data.cilk_serial) {
+          const cilkOverhead = Math.max(0, data.cilk_serial.overhead);
+          html += `
+            <div class="result-item">
+              <div class="result-label">4. Cilk Serial (No Spawn) <span class="cilk-badge">Cilk</span></div>
+              <div class="result-details">
+                <div class="detail-item">
+                  <div class="detail-label">Result</div>
+                  <div class="detail-value">${data.cilk_serial.result}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Time</div>
+                  <div class="detail-value">${(
+                    data.cilk_serial.time * 1000
+                  ).toFixed(3)} ms</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Speedup</div>
+                  <div class="detail-value">${data.cilk_serial.speedup}x</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Overhead</div>
+                  <div class="detail-value">${cilkOverhead.toFixed(2)}%</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        // Cilk Parallel (if available)
+        if (data.cilk_parallel) {
+          html += `
+            <div class="result-item" style="border-left: 4px solid #ff6b6b;">
+              <div class="result-label">5. Cilk Parallel (Work-Stealing) <span class="cilk-badge">Cilk</span></div>
+              <div class="result-details">
+                <div class="detail-item">
+                  <div class="detail-label">Result</div>
+                  <div class="detail-value">${data.cilk_parallel.result}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Time</div>
+                  <div class="detail-value">${(
+                    data.cilk_parallel.time * 1000
+                  ).toFixed(3)} ms</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Speedup</div>
+                  <div class="detail-value" style="color: #ff6b6b;">${
+                    data.cilk_parallel.speedup
+                  }x ⚡</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Cutoff</div>
+                  <div class="detail-value">${data.cilk_parallel.cutoff}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Model</div>
+                  <div class="detail-value" style="font-size: 11px;">${
+                    data.cilk_parallel.model
+                  }</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        // Summary
+        const fastest = data.cilk_parallel || data.openmp_parallel;
+        if (fastest) {
+          const improvement = (
+            ((data.sequential.time - fastest.time) / data.sequential.time) *
+            100
+          ).toFixed(1);
+          const fastestName = data.cilk_parallel
+            ? "Cilk Parallel"
+            : "OpenMP Parallel";
+          html += `
+            <div class="info-box" style="background: #d4edda; border-left-color: #28a745; margin-top: 15px;">
+              <strong style="color: #155724;">📊 Performance Summary:</strong><br>
+              ${fastestName} is <strong>${
+            fastest.speedup
+          }x faster</strong> than Sequential!<br>
+              Time saved: <strong>${improvement}%</strong> (${(
+            (data.sequential.time - fastest.time) *
+            1000
+          ).toFixed(2)} ms)<br>
+              Computed Fibonacci(${data.n}) = <strong>${fastest.result}</strong>
+            </div>
+          `;
+        }
+
+        output.innerHTML = html;
       }
 
-      // Initialize
-      updateInterpolation();
+      // ==================== BILINEAR INTERPOLATION C BACKEND ====================
+
+      let imageMetadata = {
+        width: 400,
+        height: 264,
+      };
+
+      function updateImageInfo() {
+        const imageFile = document.getElementById("imageFile").value;
+        if (imageFile === "custom") {
+          document.getElementById("customImagePath").style.display = "block";
+        } else {
+          document.getElementById("customImagePath").style.display = "none";
+        }
+        updateScalingInfo();
+      }
+
+      function updateScalingInfo() {
+        const scaling = parseFloat(
+          document.getElementById("scalingFactor").value
+        );
+        document.getElementById("scalingVal").textContent = scaling.toFixed(1);
+
+        const newWidth = Math.round(imageMetadata.width * scaling);
+        const newHeight = Math.round(imageMetadata.height * scaling);
+
+        document.getElementById("origWidth").textContent = imageMetadata.width;
+        document.getElementById("origHeight").textContent =
+          imageMetadata.height;
+        document.getElementById("newWidth").textContent = newWidth;
+        document.getElementById("newHeight").textContent = newHeight;
+        document.getElementById("estimatedTime").textContent = (
+          ((newWidth * newHeight) / 1000000) *
+          5
+        ).toFixed(1);
+
+        document.getElementById("imageInfo").style.display = "block";
+      }
+
+      async function processImageBilinear() {
+        const scaling = parseFloat(
+          document.getElementById("scalingFactor").value
+        );
+        const imageFile =
+          document.getElementById("imageFile").value === "custom"
+            ? document.getElementById("customImagePath").value
+            : "gantrycrane.png";
+
+        // Run both serial and parallel automatically
+        await runBilinearProcess(imageFile, scaling, "both");
+      }
+
+      async function runBilinearProcess(imageFile, scaling, mode) {
+        const output = document.getElementById("bilinearOutput");
+        const results = document.getElementById("bilinearResults");
+        const processBtn = document.getElementById("processBtn");
+
+        processBtn.disabled = true;
+        output.innerHTML =
+          '<div class="loading">Processing image with C backend (Serial & Parallel)</div>';
+        results.style.display = "block";
+
+        try {
+          // Call C backend to process bilinear interpolation (Serial & Parallel)
+          const response = await fetch(
+            `http://localhost:3000/api/bilinear?image=${encodeURIComponent(
+              imageFile
+            )}&scaling=${scaling}&mode=both`
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          // Update metadata
+          imageMetadata.width = data.original_width;
+          imageMetadata.height = data.original_height;
+
+          // Display results
+          displayBilinearResults(data, mode);
+
+          // Show image comparison
+          showImageComparison(data);
+        } catch (error) {
+          output.innerHTML = `
+            <div class="error">
+              <strong>❌ Error processing image:</strong><br>
+              ${error.message}<br><br>
+              <strong>Make sure:</strong><br>
+              1. Server is running: <code>npm start</code><br>
+              2. Image file exists: <code>${imageFile}</code><br>
+              3. ImageMagick installed: <code>brew install imagemagick</code>
+            </div>
+          `;
+        } finally {
+          processBtn.disabled = false;
+        }
+      }
+
+      function displayBilinearResults(data, mode) {
+        const output = document.getElementById("bilinearOutput");
+        let html = "";
+
+        html += `
+          <div class="result-item">
+            <div class="result-label">Image Processing Results <span class="c-badge">C</span> <span class="openmp-badge">OpenMP</span></div>
+            <div class="result-details">
+              <div class="detail-item">
+                <div class="detail-label">Original Size</div>
+                <div class="detail-value">${data.original_width}×${
+          data.original_height
+        }</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Upscaled Size</div>
+                <div class="detail-value">${data.new_width}×${
+          data.new_height
+        }</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Scaling Factor</div>
+                <div class="detail-value">${data.scaling}x</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Total Pixels</div>
+                <div class="detail-value">${(
+                  (data.new_width * data.new_height) /
+                  1000000
+                ).toFixed(2)}M</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Serial result
+        html += `
+          <div class="result-item">
+            <div class="result-label">Serial Processing (Baseline) <span class="c-badge">C Serial</span></div>
+            <div class="result-details">
+              <div class="detail-item">
+                <div class="detail-label">Execution Time</div>
+                <div class="detail-value">${(data.serial_time * 1000).toFixed(
+                  3
+                )} ms</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Throughput</div>
+                <div class="detail-value">${(
+                  (data.new_width * data.new_height) /
+                  data.serial_time /
+                  1000000
+                ).toFixed(2)} Mpixels/s</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Parallel results
+        if (data.parallel_results) {
+          data.parallel_results.forEach((result) => {
+            const speedup = data.serial_time / result.time;
+            const efficiency = ((speedup / result.threads) * 100).toFixed(2);
+
+            html += `
+              <div class="result-item" style="border-left: 4px solid #28a745;">
+                <div class="result-label">${
+                  result.threads
+                }-Thread Parallel <span class="openmp-badge">OpenMP</span></div>
+                <div class="result-details">
+                  <div class="detail-item">
+                    <div class="detail-label">Execution Time</div>
+                    <div class="detail-value">${(result.time * 1000).toFixed(
+                      3
+                    )} ms</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Speedup</div>
+                    <div class="detail-value" style="color: #28a745;">${speedup.toFixed(
+                      2
+                    )}x</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Efficiency</div>
+                    <div class="detail-value">${efficiency}%</div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Throughput</div>
+                    <div class="detail-value">${(
+                      (data.new_width * data.new_height) /
+                      result.time /
+                      1000000
+                    ).toFixed(2)} Mpixels/s</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        // Summary
+        html += `
+          <div class="info-box" style="background: #e7d4f5; border-left-color: #7b42bc; margin-top: 15px;">
+            <strong style="color: #4a148c;">💡 Memory-Bound Algorithm:</strong><br>
+            Bilinear interpolation is <strong>memory-bound</strong>, not compute-bound.<br>
+            Speedup limited by memory bandwidth, not number of CPU cores.<br>
+            This is why parallel versions may show low efficiency on small images.
+          </div>
+        `;
+
+        output.innerHTML = html;
+      }
+
+      function showImageComparison(data) {
+        const comparison = document.getElementById("imageComparison");
+        const originalImg = document.getElementById("originalImg");
+        const upscaledImgSerial = document.getElementById("upscaledImgSerial");
+        const upscaledImgParallel = document.getElementById(
+          "upscaledImgParallel"
+        );
+
+        const origSizeEl = document.getElementById("origSize");
+        const serialTimeEl = document.getElementById("serialTime");
+        const parallelTimeEl = document.getElementById("parallelTime");
+
+        // Load original image
+        const origFile = data.original_file || "gantrycrane.png";
+        originalImg.src = origFile;
+        originalImg.onerror = () => {
+          console.error("Failed to load original image:", origFile);
+          origSizeEl.textContent = "❌ Image not found";
+        };
+        origSizeEl.textContent = `${data.original_width}×${data.original_height} px`;
+
+        // Load serial result
+        const serialFile =
+          data.output_file_serial || data.output_file || "result_serial.png";
+        upscaledImgSerial.src = serialFile;
+        upscaledImgSerial.onerror = () => {
+          console.error("Failed to load serial image:", serialFile);
+          serialTimeEl.textContent = "❌ Image not found";
+        };
+        serialTimeEl.textContent = `Serial: ${(data.serial_time * 1000).toFixed(
+          2
+        )} ms`;
+
+        // Load parallel result (8 threads)
+        const parallelFile =
+          data.output_file_parallel || data.output_file || "result_serial.png";
+        upscaledImgParallel.src = parallelFile;
+        upscaledImgParallel.onerror = () => {
+          console.error("Failed to load parallel image:", parallelFile);
+          parallelTimeEl.textContent = "❌ Image not found";
+        };
+
+        if (data.parallel_results && data.parallel_results.length > 0) {
+          const parallelResult =
+            data.parallel_results[data.parallel_results.length - 1]; // Get 8-thread result
+          parallelTimeEl.textContent = `Parallel (8T): ${(
+            parallelResult.time * 1000
+          ).toFixed(2)} ms`;
+        }
+
+        comparison.style.display = "grid";
+      }
     </script>
   </body>
 </html>

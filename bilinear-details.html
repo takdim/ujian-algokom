@@ -314,7 +314,7 @@
   </head>
   <body>
     <div class="container">
-      <a href="visualisation.html" class="back-button">← Back to Demo</a>
+      <a href="index.html" class="back-button">← Back to Demo</a>
 
       <h1>🎨 Bilinear Interpolation - Deep Dive</h1>
 
@@ -356,6 +356,63 @@
           <strong>"Bi"</strong> = Dua → Linear interpolation dilakukan
           <strong>2 kali</strong> (sekali untuk X, sekali untuk Y). Makanya
           disebut <strong>"Bi-linear"</strong> bukan cuma "linear"!
+        </div>
+      </div>
+
+      <!-- HOW IT WORKS: MAPPING & 4 NEIGHBORS -->
+      <div class="content-card">
+        <div class="section-header" style="border-bottom-color: #4caf50">
+          <div class="section-title">🛠️ Cara Kerja Praktis</div>
+          <div class="badge" style="background: #e8f5e9; color: #1b5e20">
+            Mapping → Neighbor → Fraction
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>1) Mapping Koordinat (dest → src)</h3>
+          <div class="info-box blue">
+            <strong>Rumus:</strong><br />
+            <code>srcX = destX × (srcWidth / destWidth)</code><br />
+            <code>srcY = destY × (srcHeight / destHeight)</code><br /><br />
+            Contoh: resize 100×100 → 200×200, piksel (150,120) di output
+            dipetakan ke (75.0, 60.0) di gambar asli. Koordinat ini biasanya
+            non-integer → perlu interpolasi.
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>2) Cari 4 Pixel Tetangga</h3>
+          <div class="step-by-step">
+            <div class="step">
+              <strong>Gunakan floor/ceil:</strong><br />
+              <code>x0 = floor(srcX), x1 = ceil(srcX)</code><br />
+              <code>y0 = floor(srcY), y1 = ceil(srcY)</code><br />
+              Ambil f00 (x0,y0), f10 (x1,y0), f01 (x0,y1), f11 (x1,y1).
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>3) Hitung Fractional Part</h3>
+          <div class="info-box orange">
+            <strong>Fraksi jarak:</strong><br />
+            <code>fx = srcX - x0</code><br />
+            <code>fy = srcY - y0</code><br /><br />
+            Pakai fx, fy pada rumus utama: f(x,y) = (1-fx)(1-fy)f00 +
+            fx(1-fy)f10 + (1-fx)fy f01 + fx fy f11.
+          </div>
+
+          <div class="info-box green" style="margin-top: 12px">
+            <strong>Contoh cepat (sesuai demo):</strong><br />
+            - Gambar 100×100 di-resize ke 200×200 ⇒ piksel output (150,120)
+            dipetakan ke (75.0,60.0) di sumber.<br />
+            - Tetangga: x0=75, x1=75, y0=60, y1=60 (jika tepat integer, fx=fy=0
+            ⇒ nilai persis f00).<br />
+            - Jika koordinat non-integer (mis. 75.3, 60.7) ⇒ fx=0.3, fy=0.7 dan
+            rumus bilinear dipakai pada f00,f10,f01,f11.<br />
+            - Inilah urutan yang dipakai backend C (OpenMP) di demo: mapping →
+            ambil 4 tetangga → hitung fx,fy → kombinasi bilinear.
+          </div>
         </div>
       </div>
 
@@ -450,138 +507,37 @@
         </div>
       </div>
 
-      <!-- STEP BY STEP CALCULATION -->
+      <!-- UPSCALING FOCUS -->
       <div class="content-card">
         <div class="section-header">
-          <div class="section-title">🧮 Contoh Perhitungan Step-by-Step</div>
-          <div class="badge">Example</div>
+          <div class="section-title">🎨 Bilinear Interpolation untuk Image Upscaling</div>
+          <div class="badge">4 Tetangga Terdekat</div>
         </div>
 
         <div class="section">
-          <h3>📊 Setup:</h3>
           <div class="info-box blue">
-            <strong>Corner Values:</strong><br />
-            • Q₁₁ (Bottom-Left) = 0<br />
-            • Q₁₂ (Top-Left) = 100<br />
-            • Q₂₁ (Bottom-Right) = 200<br />
-            • Q₂₂ (Top-Right) = 255<br /><br />
-            <strong>Test Point:</strong> (x=0.5, y=0.5) - Tepat di tengah!
+            <strong>Inti:</strong> Setiap pixel baru dihitung dari <strong>4 pixel terdekat</strong> di gambar asli (Q11, Q21, Q12, Q22). Bobot ditentukan oleh jarak fraksional (fx, fy) dari koordinat hasil mapping dest→src.
           </div>
-
-          <h3 style="margin-top: 30px">🔢 Perhitungan:</h3>
-          <div class="step-by-step">
-            <div class="step">
-              <strong>Step 1: Hitung Weight untuk setiap corner</strong><br />
-              <div style="margin-top: 10px; margin-left: 20px">
-                • Weight₁ (Q₁₁) = (1-0.5)(1-0.5) = 0.5 × 0.5 =
-                <strong>0.25</strong><br />
-                • Weight₂ (Q₂₁) = (0.5)(1-0.5) = 0.5 × 0.5 =
-                <strong>0.25</strong><br />
-                • Weight₃ (Q₁₂) = (1-0.5)(0.5) = 0.5 × 0.5 =
-                <strong>0.25</strong><br />
-                • Weight₄ (Q₂₂) = (0.5)(0.5) = <strong>0.25</strong>
-              </div>
-            </div>
-
-            <div class="step">
-              <strong>Step 2: Kalikan Weight dengan Corner Value</strong><br />
-              <div style="margin-top: 10px; margin-left: 20px">
-                • Term₁ = 0.25 × 0 = <strong>0</strong><br />
-                • Term₂ = 0.25 × 200 = <strong>50</strong><br />
-                • Term₃ = 0.25 × 100 = <strong>25</strong><br />
-                • Term₄ = 0.25 × 255 = <strong>63.75</strong>
-              </div>
-            </div>
-
-            <div class="step">
-              <strong>Step 3: Jumlahkan Semua Term</strong><br />
-              <div style="margin-top: 10px; margin-left: 20px">
-                f(0.5, 0.5) = 0 + 50 + 25 + 63.75 =
-                <strong style="color: #2196f3; font-size: 1.2em">138.75</strong>
-              </div>
-            </div>
-
-            <div
-              style="
-                background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-                padding: 15px;
-                border-radius: 8px;
-                margin-top: 15px;
-              "
-            >
-              <strong style="color: #1976d2">✅ Hasil:</strong><br />
-              Nilai interpolasi di titik tengah (0.5, 0.5) =
-              <strong>138.75</strong><br />
-              Perhatikan: Ini adalah <strong>rata-rata weighted</strong> dari 4
-              corner!<br />
-              Karena titik tepat di tengah, semua weight sama (0.25 atau 25%).
-            </div>
-          </div>
-        </div>
-
-        <div class="section" style="margin-top: 30px">
-          <h3>🎯 Contoh 2: Test Point di Corner</h3>
-          <div class="info-box purple">
-            <strong>Coba hitung untuk point (x=1, y=1) - Corner Q₂₂:</strong
-            ><br /><br />
-            • Weight₁ (Q₁₁) = (1-1)(1-1) = 0 × 0 = <strong>0</strong><br />
-            • Weight₂ (Q₂₁) = (1)(1-1) = 1 × 0 = <strong>0</strong><br />
-            • Weight₃ (Q₁₂) = (1-1)(1) = 0 × 1 = <strong>0</strong><br />
-            • Weight₄ (Q₂₂) = (1)(1) = <strong>1</strong> ✅<br /><br />
-            <strong style="color: #9c27b0"
-              >Hasil: f(1,1) = 0 + 0 + 0 + 255 = 255</strong
-            ><br />
-            Tepat sama dengan Q₂₂! Ini bukti rumus bekerja dengan benar. 🎉
-          </div>
-        </div>
-      </div>
-
-      <!-- TWO-STEP INTERPRETATION -->
-      <div class="content-card">
-        <div class="section-header">
-          <div class="section-title">🔄 Interpretasi 2-Step: Bi-Linear</div>
-          <div class="badge">Alternative View</div>
         </div>
 
         <div class="section">
-          <p style="margin-bottom: 15px; color: #555; line-height: 1.8">
-            Rumus di atas bisa juga dipahami sebagai
-            <strong>2 tahap interpolasi linear</strong>:
-          </p>
+          <h3>🔁 Pipeline Upscaling (dipakai di demo/index.html)</h3>
+          <ul style="line-height: 1.8; color: #333">
+            <li>Mapping: <code>srcX = destX × (srcW/destW)</code>, <code>srcY = destY × (srcH/destH)</code>.</li>
+            <li>Ambil 4 tetangga: Q11 (floor, floor), Q21 (ceil, floor), Q12 (floor, ceil), Q22 (ceil, ceil).</li>
+            <li>Hitung fraksi: <code>fx = srcX - floor(srcX)</code>, <code>fy = srcY - floor(srcY)</code>.</li>
+            <li>Blend bilinear: (1-fx)(1-fy)Q11 + fx(1-fy)Q21 + (1-fx)fy Q12 + fx fy Q22.</li>
+          </ul>
+        </div>
 
-          <div class="step-by-step">
-            <div class="step">
-              <strong>Step 1: Interpolasi Linear di arah X (horizontal)</strong
-              ><br />
-              <div style="margin-top: 10px">
-                Hitung 2 nilai intermediate:<br />
-                • <strong>R₁</strong> (bottom row) = (1-x)Q₁₁ + xQ₂₁<br />
-                • <strong>R₂</strong> (top row) = (1-x)Q₁₂ + xQ₂₂<br />
-              </div>
-            </div>
-
-            <div class="step">
-              <strong>Step 2: Interpolasi Linear di arah Y (vertical)</strong
-              ><br />
-              <div style="margin-top: 10px">
-                Kombinasikan R₁ dan R₂:<br />
-                • <strong>f(x,y)</strong> = (1-y)R₁ + yR₂
-              </div>
-            </div>
-          </div>
-
-          <div class="info-box green">
-            <strong>🔍 Contoh dengan angka sebelumnya (x=0.5, y=0.5):</strong
-            ><br /><br />
-            <strong>Step 1 (Horizontal):</strong><br />
-            • R₁ = (0.5)(0) + (0.5)(200) = 0 + 100 = <strong>100</strong><br />
-            • R₂ = (0.5)(100) + (0.5)(255) = 50 + 127.5 = <strong>177.5</strong
-            ><br /><br />
-            <strong>Step 2 (Vertical):</strong><br />
-            • f(0.5, 0.5) = (0.5)(100) + (0.5)(177.5) = 50 + 88.75 =
-            <strong>138.75</strong> ✅<br /><br />
-            Hasilnya sama! Ini membuktikan kedua cara ekuivalen.
-          </div>
+        <div class="section">
+          <h3>⚡ Kenapa Dipilih untuk Demo?</h3>
+          <ul style="line-height: 1.8; color: #333">
+            <li>Hasil lebih halus dibanding nearest neighbor; cukup ringan dibanding bicubic.</li>
+            <li>Kompleksitas O(1) per pixel, cocok untuk real-time atau batch ringan.</li>
+            <li>Memory-bound: speedup paralel dibatasi bandwidth memori.</li>
+            <li>Mudah diparalelisasi dengan OpenMP (tiap pixel independen).</li>
+          </ul>
         </div>
       </div>
 
@@ -749,7 +705,7 @@
       </div>
 
       <a
-        href="visualisation.html"
+        href="index.html"
         class="back-button"
         style="display: block; text-align: center; margin-top: 30px"
       >

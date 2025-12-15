@@ -278,7 +278,7 @@
   </head>
   <body>
     <div class="container">
-      <a href="visualisation.html" class="back-button">← Back to Demo</a>
+      <a href="index.html" class="back-button">← Back to Demo</a>
 
       <h1>📚 Fibonacci Methods - Deep Dive</h1>
 
@@ -398,101 +398,151 @@
         </div>
       </div>
 
-      <!-- DYNAMIC PROGRAMMING METHOD -->
-      <div class="method-card dp">
-        <div class="method-header">
-          <div class="method-title">2️⃣ Dynamic Programming (Bottom-Up)</div>
-          <div class="complexity-badge">O(n) Time, O(n) Space</div>
+      <!-- OPENMP PARALLELIZATION -->
+      <div class="method-card" style="border-color: #ff6b6b">
+        <div class="method-header" style="border-bottom-color: #ff6b6b">
+          <div class="method-title" style="color: #c92a2a">
+            5️⃣ OpenMP Parallelization
+          </div>
+          <div
+            class="complexity-badge"
+            style="background: #ffe0e0; color: #c92a2a"
+          >
+            Parallel Computing
+          </div>
         </div>
 
         <div class="section">
           <div class="section-title">💡 Konsep Dasar</div>
           <p style="line-height: 1.8; color: #555">
-            Menyimpan semua nilai Fibonacci dari 0 hingga n dalam sebuah array.
-            Setiap nilai dihitung HANYA SEKALI dan disimpan untuk digunakan
-            kembali. Pendekatan <strong>bottom-up</strong>: mulai dari F(0),
-            F(1), lalu naik ke F(n).
+            OpenMP (Open Multi-Processing) adalah API untuk shared-memory
+            parallel computing. Untuk Fibonacci, kita gunakan
+            <strong>recursive parallelization</strong>: ketika menghitung F(n),
+            kita jalankan F(n-1) dan F(n-2) di thread berbeda secara bersamaan!
           </p>
         </div>
 
         <div class="section">
-          <div class="section-title">📝 Pseudocode</div>
+          <div class="section-title">📝 Pseudocode dengan OpenMP</div>
           <div class="code-block">
-            <strong>function</strong> fibonacci(n): <strong>if</strong> n ≤ 1:
-            <strong>return</strong> n
-
-            <span style="color: #28a745"
-              >// Buat array untuk menyimpan hasil</span
+            <strong>#pragma omp parallel sections</strong>
+            {
+            <span style="color: #ff6b6b"
+              >// Task 1: Hitung F(n-1) di thread 1</span
             >
-            dp = [0, 1]
+            <strong>#pragma omp section</strong>
+            {
+            <strong>int</strong> f1 = fibonacci(n - 1); }
 
-            <strong>for</strong> i from 2 to n:
-            <span style="color: #28a745">// F(i) = F(i-1) + F(i-2)</span>
-            dp[i] = dp[i-1] + dp[i-2]
+            <span style="color: #ff6b6b"
+              >// Task 2: Hitung F(n-2) di thread 2</span
+            >
+            <strong>#pragma omp section</strong>
+            {
+            <strong>int</strong> f2 = fibonacci(n - 2); } }
 
-            <strong>return</strong> dp[n]
+            <strong>return</strong> f1 + f2;
           </div>
         </div>
 
         <div class="section">
-          <div class="section-title">🔍 Step-by-Step Example: F(7)</div>
+          <div class="section-title">
+            🔍 Execution Timeline: F(5) dengan 2 Threads
+          </div>
           <div class="visual-demo">
-            <div class="step-by-step">
-              <div class="step"><strong>Inisialisasi:</strong> dp = [0, 1]</div>
-              <div class="step">
-                <strong>i=2:</strong> dp[2] = dp[1] + dp[0] = 1 + 0 = 1 → [0, 1,
-                <strong>1</strong>]
+            <div style="margin: 15px 0">
+              <strong>SERIAL (1 thread):</strong>
+              <div
+                style="
+                  background: #fff3e0;
+                  padding: 10px;
+                  border-radius: 5px;
+                  margin: 5px 0;
+                "
+              >
+                Calculate F(5) → F(4) → F(3) → F(2) → F(1) → Done
+                <br /><span style="color: #f57f17"
+                  >⏱️ Total: 15ms (sequential)</span
+                >
               </div>
-              <div class="step">
-                <strong>i=3:</strong> dp[3] = dp[2] + dp[1] = 1 + 1 = 2 → [0, 1,
-                1, <strong>2</strong>]
+            </div>
+
+            <div style="margin: 15px 0">
+              <strong>PARALLEL (2 threads):</strong>
+              <div
+                style="
+                  background: #ffebee;
+                  padding: 10px;
+                  border-radius: 5px;
+                  margin: 5px 0;
+                "
+              >
+                <div style="margin: 5px 0">
+                  <strong>Time 0ms:</strong> Start F(5)
+                </div>
+                <div style="margin: 5px 0; margin-left: 15px">
+                  <strong>Thread 1:</strong> F(4) starting...
+                </div>
+                <div style="margin: 5px 0; margin-left: 15px">
+                  <strong>Thread 2:</strong> F(3) starting... (parallel!)
+                </div>
+                <div style="margin: 5px 0">
+                  <strong>Time 8ms:</strong> F(3) done, back to main
+                </div>
+                <div style="margin: 5px 0; margin-left: 15px">
+                  <strong>Thread 1:</strong> Still computing F(4)...
+                </div>
+                <div style="margin: 5px 0">
+                  <strong>Time 12ms:</strong> F(4) done, sync point
+                </div>
+                <div style="margin: 5px 0; margin-left: 15px">
+                  <strong>Main:</strong> F(5) = F(4) + F(3) = Done
+                </div>
+                <div style="margin: 5px 0">
+                  <span style="color: #c92a2a; font-weight: bold"
+                    >⏱️ Total: 12ms (1.25x faster with 2 threads)</span
+                  >
+                </div>
               </div>
-              <div class="step">
-                <strong>i=4:</strong> dp[4] = dp[3] + dp[2] = 2 + 1 = 3 → [0, 1,
-                1, 2, <strong>3</strong>]
-              </div>
-              <div class="step">
-                <strong>i=5:</strong> dp[5] = dp[4] + dp[3] = 3 + 2 = 5 → [0, 1,
-                1, 2, 3, <strong>5</strong>]
-              </div>
-              <div class="step">
-                <strong>i=6:</strong> dp[6] = dp[5] + dp[4] = 5 + 3 = 8 → [0, 1,
-                1, 2, 3, 5, <strong>8</strong>]
-              </div>
-              <div class="step">
-                <strong>i=7:</strong> dp[7] = dp[6] + dp[5] = 8 + 5 = 13 → [0,
-                1, 1, 2, 3, 5, 8, <strong>13</strong>]
-              </div>
-              <p style="margin-top: 15px; color: #28a745; font-weight: bold">
-                ✅ Total Operasi: 7 iterasi saja!<br />
-                Tidak ada perhitungan redundan - setiap nilai dihitung tepat 1
-                kali.
-              </p>
             </div>
           </div>
         </div>
 
         <div class="section">
-          <div class="section-title">⚡ Kompleksitas</div>
+          <div class="section-title">⚡ Performance Characteristics</div>
           <table class="comparison-table">
             <tr>
-              <th>Aspek</th>
-              <th>Kompleksitas</th>
+              <th>Faktor</th>
               <th>Penjelasan</th>
             </tr>
             <tr>
-              <td><strong>Time</strong></td>
-              <td style="color: #28a745; font-weight: bold">O(n)</td>
-              <td>Linear! Loop dari 2 sampai n</td>
+              <td><strong>Speedup</strong></td>
+              <td>
+                Tergantung pada n dan jumlah core CPU<br />
+                <strong>Contoh:</strong> F(35) dengan 8 cores:
+                <strong style="color: #ff6b6b">3.36x faster</strong>
+              </td>
             </tr>
             <tr>
-              <td><strong>Space</strong></td>
-              <td style="color: #ffa726">O(n)</td>
-              <td>Array menyimpan n+1 elemen</td>
+              <td><strong>Thread Overhead</strong></td>
+              <td>
+                Ada overhead untuk create/spawn threads<br />
+                Tidak efficient untuk n kecil (n < 30)
+              </td>
             </tr>
             <tr>
-              <td><strong>Praktis untuk</strong></td>
-              <td colspan="2">n ≤ 10,000+ (sangat cepat)</td>
+              <td><strong>Cutoff Strategy</strong></td>
+              <td>
+                Gunakan serial execution untuk n < CUTOFF (misal 20)<br />
+                Ini mengurangi thread overhead
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Best Result</strong></td>
+              <td>
+                F(35) + CUTOFF=20 + 8 threads:
+                <strong style="color: #28a745">3.6x - 3.8x speedup</strong>
+              </td>
             </tr>
           </table>
         </div>
@@ -503,323 +553,181 @@
             <div class="pros">
               <h4>✅ Kelebihan</h4>
               <ul class="info-list">
-                <li>Sangat cepat - O(n) time</li>
-                <li>Mudah dipahami (iterative)</li>
-                <li>Bisa akses semua nilai kapan saja</li>
-                <li>Bagus untuk print semua sequence</li>
-                <li>Praktis untuk produksi</li>
+                <li>Memanfaatkan multi-core CPU</li>
+                <li>Significant speedup untuk n besar</li>
+                <li>Relatively simple implementation</li>
+                <li>Widely supported (gcc, clang, icc)</li>
+                <li>Production-ready solution</li>
               </ul>
             </div>
             <div class="cons">
               <h4>❌ Kekurangan</h4>
               <ul class="info-list">
-                <li>Butuh O(n) memory</li>
-                <li>Memory waste jika hanya butuh F(n)</li>
-                <li>Tidak optimal untuk n sangat besar</li>
+                <li>Thread creation overhead</li>
+                <li>Cutoff threshold harus di-tune</li>
+                <li>Memory bandwidth becomes bottleneck</li>
+                <li>Not efficient untuk n < 30</li>
+                <li>Performance varies by system</li>
               </ul>
             </div>
           </div>
         </div>
 
         <div class="section">
-          <div class="section-title">🎯 Use Case</div>
+          <div class="section-title">🎯 Practical Usage</div>
           <p
             style="
-              background: #e3f2fd;
+              background: #ffebee;
               padding: 15px;
               border-radius: 8px;
               line-height: 1.8;
             "
           >
-            <strong>Kapan menggunakan:</strong> Ketika butuh semua nilai
-            Fibonacci dari 0 sampai n, atau butuh print sequence.<br />
-            <strong>Perfect untuk:</strong> Aplikasi yang perlu menyimpan
-            history, visualisasi sequence, atau lookup table.
+            <strong>Compile:</strong> <code>gcc -fopenmp -O3 fib.c -o fib</code
+            ><br />
+            <strong>Run:</strong> <code>./fib 35</code> (uses all available
+            cores)<br />
+            <strong>Control threads:</strong>
+            <code>OMP_NUM_THREADS=4 ./fib 35</code><br />
+            <strong>Best for:</strong> Production systems, scientific computing,
+            real-world applications
           </p>
         </div>
       </div>
 
-      <!-- SPACE OPTIMIZED METHOD -->
-      <div class="method-card optimized">
-        <div class="method-header">
-          <div class="method-title">3️⃣ Space Optimized (Iterative)</div>
-          <div class="complexity-badge">O(n) Time, O(1) Space</div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">💡 Konsep Dasar</div>
-          <p style="line-height: 1.8; color: #555">
-            Optimisasi dari DP dengan observasi: untuk menghitung F(n), kita
-            hanya butuh F(n-1) dan F(n-2). Tidak perlu simpan SEMUA nilai! Cukup
-            simpan <strong>2 variabel terakhir</strong> saja. Ini adalah
-            <strong>trade-off</strong>: korbankan akses ke semua nilai, dapat
-            memory efficiency.
-          </p>
-        </div>
-
-        <div class="section">
-          <div class="section-title">📝 Pseudocode</div>
-          <div class="code-block">
-            <strong>function</strong> fibonacci(n): <strong>if</strong> n ≤ 1:
-            <strong>return</strong> n
-
-            <span style="color: #17a2b8">// Hanya 2 variabel!</span>
-            prev = 0 curr = 1
-
-            <strong>for</strong> i from 2 to n:
-            <span style="color: #17a2b8">// Hitung nilai baru</span>
-            next = prev + curr
-            <span style="color: #17a2b8">// Shift: prev → curr → next</span>
-            prev = curr curr = next
-
-            <strong>return</strong> curr
+      <!-- CILK PARALLELIZATION -->
+      <div class="method-card" style="border-color: #ff9ff3">
+        <div class="method-header" style="border-bottom-color: #ff9ff3">
+          <div class="method-title" style="color: #be185d">
+            6️⃣ Cilk Parallelization (OpenCilk)
           </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">🔍 Step-by-Step Example: F(7)</div>
-          <div class="visual-demo">
-            <div class="step-by-step">
-              <div class="step">
-                <strong>Inisialisasi:</strong> prev=0, curr=1
-              </div>
-              <div class="step">
-                <strong>i=2:</strong> next = 0+1=1 → prev=1, curr=<strong
-                  >1</strong
-                >
-              </div>
-              <div class="step">
-                <strong>i=3:</strong> next = 1+1=2 → prev=1, curr=<strong
-                  >2</strong
-                >
-              </div>
-              <div class="step">
-                <strong>i=4:</strong> next = 1+2=3 → prev=2, curr=<strong
-                  >3</strong
-                >
-              </div>
-              <div class="step">
-                <strong>i=5:</strong> next = 2+3=5 → prev=3, curr=<strong
-                  >5</strong
-                >
-              </div>
-              <div class="step">
-                <strong>i=6:</strong> next = 3+5=8 → prev=5, curr=<strong
-                  >8</strong
-                >
-              </div>
-              <div class="step">
-                <strong>i=7:</strong> next = 5+8=13 → prev=8, curr=<strong
-                  >13</strong
-                >
-              </div>
-              <p style="margin-top: 15px; color: #17a2b8; font-weight: bold">
-                ✅ Total Memory: HANYA 2 variabel (prev & curr)!<br />
-                Speed sama dengan DP, tapi memory jauh lebih hemat.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">⚡ Kompleksitas</div>
-          <table class="comparison-table">
-            <tr>
-              <th>Aspek</th>
-              <th>Kompleksitas</th>
-              <th>Penjelasan</th>
-            </tr>
-            <tr>
-              <td><strong>Time</strong></td>
-              <td style="color: #28a745; font-weight: bold">O(n)</td>
-              <td>Linear - sama dengan DP</td>
-            </tr>
-            <tr>
-              <td><strong>Space</strong></td>
-              <td style="color: #28a745; font-weight: bold">O(1)</td>
-              <td>Constant! Hanya 2-3 variabel</td>
-            </tr>
-            <tr>
-              <td><strong>Praktis untuk</strong></td>
-              <td colspan="2">n ≤ 1,000,000+ (super efficient)</td>
-            </tr>
-          </table>
-        </div>
-
-        <div class="section">
-          <div class="section-title">⚖️ Kelebihan & Kekurangan</div>
-          <div class="pros-cons">
-            <div class="pros">
-              <h4>✅ Kelebihan</h4>
-              <ul class="info-list">
-                <li>Paling hemat memory - O(1)!</li>
-                <li>Tetap cepat - O(n) time</li>
-                <li>Simple & elegant</li>
-                <li>Perfect untuk production</li>
-                <li>Bisa handle n sangat besar</li>
-              </ul>
-            </div>
-            <div class="cons">
-              <h4>❌ Kekurangan</h4>
-              <ul class="info-list">
-                <li>Hanya dapat nilai akhir F(n)</li>
-                <li>Tidak bisa akses F(i) lainnya</li>
-                <li>Tidak cocok jika butuh sequence</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">🎯 Use Case</div>
-          <p
-            style="
-              background: #e3f2fd;
-              padding: 15px;
-              border-radius: 8px;
-              line-height: 1.8;
-            "
+          <div
+            class="complexity-badge"
+            style="background: #f3e5f5; color: #be185d"
           >
-            <strong>Kapan menggunakan:</strong> Ketika hanya butuh F(n) saja
-            (tidak butuh semua sequence).<br />
-            <strong>Perfect untuk:</strong> Production code, embedded systems,
-            atau ketika memory sangat terbatas.<br />
-            <strong>Best Choice:</strong> Untuk sebagian besar aplikasi
-            real-world!
-          </p>
-        </div>
-      </div>
-
-      <!-- MATRIX EXPONENTIATION METHOD -->
-      <div class="method-card matrix">
-        <div class="method-header">
-          <div class="method-title">4️⃣ Matrix Exponentiation</div>
-          <div class="complexity-badge">O(log n) Time</div>
+            Task Parallelism
+          </div>
         </div>
 
         <div class="section">
           <div class="section-title">💡 Konsep Dasar</div>
           <p style="line-height: 1.8; color: #555">
-            Metode paling <strong>advanced</strong> yang menggunakan aljabar
-            linear! Berdasarkan fakta bahwa: [F(n+1), F(n)] = [F(1), F(0)] ×
-            [[1,1],[1,0]]^n<br />
-            Dengan <strong>fast matrix exponentiation</strong> (divide &
-            conquer), kita bisa hitung pangkat dalam O(log n)!
+            Cilk (C with Intellegent Language Kits) adalah bahasa extension
+            untuk parallel programming yang lebih elegant dari OpenMP. Dengan
+            keywords <strong>cilk_spawn</strong> dan <strong>cilk_sync</strong>,
+            kita bisa dengan mudah membuat task parallelism.
+            <strong>OpenCilk</strong> adalah fork terbaru yang lebih optimal.
           </p>
         </div>
 
         <div class="section">
-          <div class="section-title">📝 Pseudocode</div>
+          <div class="section-title">📝 Pseudocode dengan Cilk</div>
           <div class="code-block">
-            <strong>function</strong> fibonacci(n): <strong>if</strong> n ≤ 1:
-            <strong>return</strong> n
+            <strong>cilk_int</strong> fibonacci(n) { <strong>if</strong> (n ≤ 1)
+            <strong>return</strong> n;
 
-            <span style="color: #7b42bc">// Base matrix untuk Fibonacci</span>
-            baseMatrix = [[1, 1], [1, 0]]
-
-            <span style="color: #7b42bc"
-              >// Hitung matrix^n dengan fast exponentiation</span
+            <strong>cilk_spawn</strong> f1 = fibonacci(n - 1);
+            <span style="color: #ff9ff3"
+              >// Spawn task untuk F(n-1) - jalankan di background</span
             >
-            resultMatrix = <strong>matrixPower</strong>(baseMatrix, n)
 
-            <strong>return</strong> resultMatrix[0][1]
+            <strong>int</strong> f2 = fibonacci(n - 2);
+            <span style="color: #ff9ff3"
+              >// Continue dengan F(n-2) di current thread</span
+            >
 
-            <strong>function</strong> matrixPower(M, n): <strong>if</strong> n
-            == 1: <strong>return</strong> M
+            <strong>cilk_sync</strong>;
+            <span style="color: #ff9ff3">// Wait untuk f1 selesai</span>
 
-            <strong>if</strong> n is even:
-            <span style="color: #7b42bc">// M^n = (M^(n/2))^2</span>
-            half = <strong>matrixPower</strong>(M, n/2) <strong>return</strong>
-            <strong>matrixMultiply</strong>(half, half) <strong>else</strong>:
-            <span style="color: #7b42bc">// M^n = M × M^(n-1)</span>
-            <strong>return</strong> <strong>matrixMultiply</strong>(M,
-            <strong>matrixPower</strong>(M, n-1))
+            <strong>return</strong> f1 + f2; }
           </div>
         </div>
 
         <div class="section">
-          <div class="section-title">🔍 Step-by-Step Example: F(6)</div>
+          <div class="section-title">🔍 Cilk vs OpenMP Comparison</div>
           <div class="visual-demo">
-            <div class="step-by-step">
-              <div class="step">
-                <strong>Target:</strong> Hitung [[1,1],[1,0]]^6
-              </div>
-              <div class="step">
-                <strong>Langkah 1:</strong> M^6 = (M^3)^2 → Hitung M^3 dulu
-              </div>
-              <div class="step" style="margin-left: 20px">
-                <strong>M^3 = M × M^2</strong> → Hitung M^2 dulu
-              </div>
-              <div class="step" style="margin-left: 40px">
-                <strong>M^2 = M × M</strong> = [[1,1],[1,0]] × [[1,1],[1,0]] =
-                [[2,1],[1,1]]
-              </div>
-              <div class="step" style="margin-left: 20px">
-                <strong>M^3 = M^2 × M</strong> = [[2,1],[1,1]] × [[1,1],[1,0]] =
-                [[3,2],[2,1]]
-              </div>
-              <div class="step">
-                <strong>Langkah 2:</strong> M^6 = M^3 × M^3 = [[3,2],[2,1]] ×
-                [[3,2],[2,1]] = [[13,8],[8,5]]
-              </div>
-              <div class="step">
-                <strong>Hasil:</strong> F(6) = resultMatrix[0][1] =
-                <strong>8</strong> ✅
-              </div>
-              <p style="margin-top: 15px; color: #7b42bc; font-weight: bold">
-                ✅ Total Perkalian Matrix: Hanya 3 kali untuk F(6)!<br />
-                Untuk F(1000): Hanya ~10 perkalian matrix (log₂ 1000 ≈ 10)
-              </p>
-            </div>
+            <table class="comparison-table">
+              <tr>
+                <th>Aspek</th>
+                <th>OpenMP</th>
+                <th>Cilk</th>
+              </tr>
+              <tr>
+                <td><strong>Syntax</strong></td>
+                <td><code>#pragma omp parallel</code> (directive)</td>
+                <td><code>cilk_spawn</code> (keyword)</td>
+              </tr>
+              <tr>
+                <td><strong>Granularity Control</strong></td>
+                <td>Manual (programmer controls)</td>
+                <td>Automatic (Cilk scheduler optimizes)</td>
+              </tr>
+              <tr>
+                <td><strong>Work Stealing</strong></td>
+                <td>Not built-in</td>
+                <td>Yes! Smart load balancing</td>
+              </tr>
+              <tr>
+                <td><strong>Scheduling</strong></td>
+                <td>Static/dynamic (user specified)</td>
+                <td>Work-stealing scheduler</td>
+              </tr>
+              <tr>
+                <td><strong>Code Clarity</strong></td>
+                <td>Pragmas can clutter code</td>
+                <td>More natural & readable</td>
+              </tr>
+              <tr>
+                <td><strong>Performance</strong></td>
+                <td>Good with proper tuning</td>
+                <td>Better auto-tuning (usually faster)</td>
+              </tr>
+              <tr>
+                <td><strong>Community</strong></td>
+                <td>Very large, widely used</td>
+                <td>Smaller but growing (MIT, Intel)</td>
+              </tr>
+            </table>
           </div>
         </div>
 
         <div class="section">
-          <div class="section-title">🧮 Kenapa O(log n)?</div>
+          <div class="section-title">
+            ⚙️ How Cilk Work Stealing Scheduler Works
+          </div>
           <div
             style="
               background: #f3e5f5;
               padding: 15px;
               border-radius: 8px;
-              border-left: 4px solid #7b42bc;
+              border-left: 4px solid #ff9ff3;
+              margin: 15px 0;
             "
           >
-            <p style="line-height: 1.8; margin-bottom: 10px">
-              Fast exponentiation bekerja dengan
-              <strong>membagi eksponen jadi 2</strong> setiap kali:
+            <p style="margin: 10px 0; line-height: 1.8">
+              <strong>Concept:</strong> Jika sebuah thread selesai lebih dulu,
+              ia akan "mencuri" pekerjaan dari thread lain yang masih sibuk.
             </p>
-            <ul style="margin-left: 20px; line-height: 1.8">
-              <li>M^32 = (M^16)^2 = ((M^8)^2)^2 = ...</li>
-              <li>Pangkat 32 hanya butuh 5 langkah (2^5 = 32)</li>
-              <li>Pangkat 1024 hanya butuh 10 langkah (2^10 = 1024)</li>
-              <li>Secara umum: <strong>n langkah → log₂ n operasi</strong></li>
-            </ul>
+            <ol style="margin-left: 20px; line-height: 2">
+              <li><strong>Initial:</strong> F(10) di-spawn ke 4 threads</li>
+              <li>
+                <strong>Thread 1:</strong> Mengerjakan F(10) → mendapat banyak
+                sub-tasks
+              </li>
+              <li>
+                <strong>Thread 2:</strong> Selesai cepat, steal task dari Thread
+                1's deque
+              </li>
+              <li><strong>Thread 3, 4:</strong> Juga steal tasks yang ada</li>
+              <li>
+                <strong>Result:</strong> Load balancing otomatis & optimal!
+              </li>
+            </ol>
+            <p style="margin-top: 15px; font-weight: bold; color: #be185d">
+              ✅ Ini membuat Cilk lebih efisien dari OpenMP untuk recursive
+              parallelism!
+            </p>
           </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">⚡ Kompleksitas</div>
-          <table class="comparison-table">
-            <tr>
-              <th>Aspek</th>
-              <th>Kompleksitas</th>
-              <th>Penjelasan</th>
-            </tr>
-            <tr>
-              <td><strong>Time</strong></td>
-              <td style="color: #7b42bc; font-weight: bold">O(log n)</td>
-              <td>Logaritmik! Tercepat secara asimptotik</td>
-            </tr>
-            <tr>
-              <td><strong>Space</strong></td>
-              <td style="color: #ffa726">O(log n)</td>
-              <td>Recursion call stack depth = log n</td>
-            </tr>
-            <tr>
-              <td><strong>Praktis untuk</strong></td>
-              <td colspan="2">n sangat besar (10^6, 10^9, dst)</td>
-            </tr>
-          </table>
         </div>
 
         <div class="section">
@@ -828,40 +736,44 @@
             <div class="pros">
               <h4>✅ Kelebihan</h4>
               <ul class="info-list">
-                <li>TERCEPAT untuk n besar - O(log n)!</li>
-                <li>Elegant secara matematis</li>
-                <li>Bisa handle n = 10^9+</li>
-                <li>Impressive untuk competitive programming</li>
+                <li>Elegant syntax dengan spawn/sync</li>
+                <li>Work-stealing scheduler (auto load balancing)</li>
+                <li>Better for recursive parallelism</li>
+                <li>Less manual tuning needed</li>
+                <li>Proven better performance (MIT research)</li>
+                <li>More intuitive for divide & conquer</li>
               </ul>
             </div>
             <div class="cons">
               <h4>❌ Kekurangan</h4>
               <ul class="info-list">
-                <li>Kompleks & sulit dipahami</li>
-                <li>Butuh pemahaman aljabar linear</li>
-                <li>Overhead untuk n kecil (< 1000)</li>
-                <li>Tidak intuitive untuk pemula</li>
+                <li>Smaller community than OpenMP</li>
+                <li>Less widely supported (needs special compiler)</li>
+                <li>OpenCilk is relatively new</li>
+                <li>Learning curve for work-stealing concept</li>
+                <li>Availability on some systems limited</li>
               </ul>
             </div>
           </div>
         </div>
 
         <div class="section">
-          <div class="section-title">🎯 Use Case</div>
+          <div class="section-title">🎯 Practical Usage</div>
           <p
             style="
-              background: #e3f2fd;
+              background: #f3e5f5;
               padding: 15px;
               border-radius: 8px;
               line-height: 1.8;
             "
           >
-            <strong>Kapan menggunakan:</strong> Ketika n sangat besar (> 10^6),
-            atau untuk competitive programming.<br />
-            <strong>Perfect untuk:</strong> Contests, challenges, atau untuk
-            show off mathematical elegance! 😎<br />
-            <strong>Catatan:</strong> Untuk n < 1000, Space Optimized lebih
-            praktis dan sama cepatnya.
+            <strong>Install OpenCilk:</strong>
+            <code>brew install opencilk</code> (macOS)<br />
+            <strong>Compile:</strong>
+            <code>clang -fopencilk -O3 fib.cilk.c -o fib</code><br />
+            <strong>Run:</strong> <code>./fib 35</code><br />
+            <strong>Optimal for:</strong> Recursive algorithms, tree traversal,
+            divide & conquer problems
           </p>
         </div>
       </div>
@@ -872,13 +784,13 @@
         style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)"
       >
         <h2 style="color: #667eea; margin-bottom: 20px; text-align: center">
-          📊 Quick Comparison Table
+          📊 Comparison: All Methods
         </h2>
         <table class="comparison-table">
           <thead>
             <tr>
               <th>Method</th>
-              <th>Time</th>
+              <th>Time Complexity</th>
               <th>Space</th>
               <th>Best For</th>
               <th>Difficulty</th>
@@ -886,32 +798,29 @@
           </thead>
           <tbody>
             <tr>
-              <td><strong style="color: #f57f17">Recursive</strong></td>
+              <td>
+                <strong style="color: #f57f17">1️⃣ Recursive (Naive)</strong>
+              </td>
               <td style="color: #d32f2f">O(2^n)</td>
               <td>O(n)</td>
               <td>Learning only</td>
               <td>⭐ Easy</td>
             </tr>
             <tr>
-              <td><strong style="color: #155724">DP Bottom-Up</strong></td>
-              <td style="color: #28a745">O(n)</td>
+              <td>
+                <strong style="color: #c92a2a">2️⃣ OpenMP Parallel</strong>
+              </td>
+              <td style="color: #ff6b6b">O(2^n)/p</td>
               <td>O(n)</td>
-              <td>Need sequence</td>
-              <td>⭐⭐ Medium</td>
+              <td>Multi-core systems</td>
+              <td>⭐⭐⭐ Hard</td>
             </tr>
             <tr>
-              <td><strong style="color: #0c5460">Space Optimized</strong></td>
-              <td style="color: #28a745">O(n)</td>
-              <td style="color: #28a745">O(1)</td>
-              <td>Production code</td>
-              <td>⭐⭐ Medium</td>
-            </tr>
-            <tr>
-              <td><strong style="color: #4a148c">Matrix Exp.</strong></td>
-              <td style="color: #7b42bc">O(log n)</td>
-              <td>O(log n)</td>
-              <td>n very large</td>
-              <td>⭐⭐⭐⭐ Hard</td>
+              <td><strong style="color: #be185d">3️⃣ Cilk Parallel</strong></td>
+              <td style="color: #ff9ff3">O(2^n)/p</td>
+              <td>O(n)</td>
+              <td>Recursive parallel</td>
+              <td>⭐⭐⭐ Hard</td>
             </tr>
           </tbody>
         </table>
@@ -925,31 +834,75 @@
           "
         >
           <h3 style="color: #667eea; margin-bottom: 15px">
-            🎓 Which Should You Use?
+            🎓 Algorithm Selection Guide
           </h3>
-          <ul style="line-height: 2; color: #333">
+          <ul style="line-height: 2.2; color: #333; font-size: 15px">
             <li>
               📚 <strong>Learning Recursion:</strong> Start with Recursive
+              method (simple and intuitive)
             </li>
-            <li>📊 <strong>Need Full Sequence:</strong> Use DP Bottom-Up</li>
+            <li
+              style="
+                background: #fff3cd;
+                padding: 10px;
+                border-radius: 5px;
+                border-left: 4px solid #ff6b6b;
+              "
+            >
+              ⚡ <strong>Parallel Computing (OpenMP):</strong> Multi-threaded
+              version with manual tuning (3.6x-3.8x speedup on 8 cores)
+            </li>
+            <li
+              style="
+                background: #f3e5f5;
+                padding: 10px;
+                border-radius: 5px;
+                border-left: 4px solid #ff9ff3;
+              "
+            >
+              ⚡⚡ <strong>Advanced Parallel (Cilk):</strong> Task-based with
+              automatic work-stealing scheduler (better load balancing)
+            </li>
+          </ul>
+        </div>
+
+        <div
+          style="
+            margin-top: 25px;
+            padding: 20px;
+            background: #fffde7;
+            border-radius: 10px;
+            border-left: 4px solid #fbc02d;
+          "
+        >
+          <h3 style="color: #f57f17; margin-bottom: 15px">📌 Key Insights</h3>
+          <ul style="line-height: 1.9; color: #333; margin-left: 20px">
             <li>
-              🚀 <strong>Production Code (n < 10^6):</strong> Use Space
-              Optimized
+              <strong>All 3 methods use recursive approach:</strong> Calculate
+              F(n) = F(n-1) + F(n-2)
             </li>
             <li>
-              🏆 <strong>Competitive Programming:</strong> Use Matrix
-              Exponentiation
+              <strong>Key Difference:</strong> Execution strategy - Sequential,
+              OpenMP (manual threading), or Cilk (automatic work-stealing)
             </li>
             <li>
-              💡 <strong>Most Common:</strong> Space Optimized is the winner for
-              90% of cases!
+              <strong>Parallel Speedup:</strong> Limited by Amdahl's Law:
+              Speedup = 1 / (1 - p + p/n), where p = parallelizable part
+            </li>
+            <li>
+              <strong>Cutoff Strategy:</strong> Both OpenMP and Cilk use serial
+              base case for small n (< 20) to reduce overhead
+            </li>
+            <li>
+              <strong>Work Stealing (Cilk):</strong> Automatic load balancing -
+              when a thread finishes early, it "steals" work from busy threads
             </li>
           </ul>
         </div>
       </div>
 
       <a
-        href="visualisation.html"
+        href="index.html"
         class="back-button"
         style="display: block; text-align: center; margin-top: 30px"
       >
