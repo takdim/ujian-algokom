@@ -368,6 +368,116 @@
           Calculate (C Backend)
         </button>
 
+        <!-- FIBONACCI CODE (C BACKEND) -->
+        <details
+          style="
+            margin: 15px 0 10px 0;
+            background: #f5f7fb;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid #e2e6f0;
+          "
+        >
+          <summary style="cursor: pointer; font-weight: bold; color: #667eea">
+            📜 Lihat Kode C Backend (Fibonacci OpenMP & OpenCilk)
+          </summary>
+          <div style="margin-top: 12px">
+            <div style="font-size: 0.9em; color: #374151; margin-bottom: 10px">
+              Kompilasi:
+              <code
+                >gcc-15 -fopenmp -DUSE_OPENMP -o fib_omp_json
+                fibonacci_json.c</code
+              >,
+              <code
+                >&lt;opencilk-clang&gt; -fopencilk -DUSE_CILK -o fib_json_cilk
+                fibonacci_json.c</code
+              >.
+            </div>
+
+            <h5 style="margin: 8px 0; color: #334155">
+              1) Baseline & utilitas
+            </h5>
+            <pre
+              style="
+                background: #0f172a;
+                color: #e5e7eb;
+                padding: 12px;
+                border-radius: 8px;
+                overflow-x: auto;
+                font-size: 13px;
+                line-height: 1.5;
+                border: 1px solid #1f2937;
+              "
+            ><code>int fib_sequential(int n) {
+  if (n < 2) return n;
+  return fib_sequential(n - 1) + fib_sequential(n - 2);
+}
+</code></pre>
+
+            <h5 style="margin: 8px 0; color: #334155">2) OpenMP</h5>
+            <pre
+              style="
+                background: #0f172a;
+                color: #e5e7eb;
+                padding: 12px;
+                border-radius: 8px;
+                overflow-x: auto;
+                font-size: 13px;
+                line-height: 1.5;
+                border: 1px solid #1f2937;
+              "
+            ><code>#ifdef USE_OPENMP
+#include &lt;omp.h&gt;
+#define CUTOFF 20
+
+int fib_omp_task(int n) {
+  if (n < 2) return n;
+  if (n < CUTOFF) return fib_sequential(n);
+  int x, y;
+  #pragma omp task shared(x) { x = fib_omp_task(n - 1); }
+  y = fib_omp_task(n - 2);
+  #pragma omp taskwait
+  return x + y;
+}
+
+int fibonacci_openmp_parallel(int n) {
+  int res = 0;
+  #pragma omp parallel
+  { #pragma omp single { res = fib_omp_task(n); } }
+  return res;
+}
+#endif</code></pre>
+
+            <h5 style="margin: 8px 0; color: #334155">3) OpenCilk</h5>
+            <pre
+              style="
+                background: #0f172a;
+                color: #e5e7eb;
+                padding: 12px;
+                border-radius: 8px;
+                overflow-x: auto;
+                font-size: 13px;
+                line-height: 1.5;
+                border: 1px solid #1f2937;
+              "
+            ><code>#ifdef USE_CILK
+#include &lt;cilk/cilk.h&gt;
+#define CILK_CUTOFF 20
+
+int fib_cilk_task(int n) {
+  if (n < 2) return n;
+  if (n < CILK_CUTOFF) return fib_sequential(n);
+  int x = cilk_spawn fib_cilk_task(n - 1);
+  int y = fib_cilk_task(n - 2);
+  cilk_sync;
+  return x + y;
+}
+
+int fibonacci_cilk_parallel(int n) { return fib_cilk_task(n); }
+#endif</code></pre>
+          </div>
+        </details>
+
         <div class="results" id="fibResults" style="display: none">
           <h3>Results from C Program:</h3>
           <div id="fibOutput"></div>
@@ -457,8 +567,6 @@
               tasks<br />
               <strong>Cutoff Strategy:</strong> Sequential untuk n < 20
               (menghindari overhead)<br />
-              <strong>Work-Stealing:</strong> Threads mencuri task dari antrian
-              lain<br />
               <strong>Keunggulan:</strong> Load balancing otomatis, skalabilitas
               baik
             </p>
@@ -663,6 +771,149 @@
           </div>
         </div>
 
+        <details
+          style="
+            margin-top: 25px;
+            background: #f5f7fb;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e2e6f0;
+          "
+        >
+          <summary style="cursor: pointer; font-weight: bold; color: #667eea">
+            📜 Lihat Kode C Backend (Serial & OpenMP Parallel)
+          </summary>
+          <div style="margin-top: 12px">
+            <div style="font-size: 0.9em; color: #374151; margin-bottom: 10px">
+              Program dijalankan:
+              <code>./bilinear &lt;file&gt; [scale]</code> (default scale 2.0,
+              mengikuti slider di UI). Cuplikan ini sinkron dengan
+              <code>bilinear_serial_parallel.c</code>.
+            </div>
+
+            <h5 style="margin: 10px 0; color: #334155">
+              1) bilinear_interpolate
+            </h5>
+            <pre
+              style="
+                background: #0f172a;
+                color: #e5e7eb;
+                padding: 12px;
+                border-radius: 8px;
+                overflow-x: auto;
+                font-size: 13px;
+                line-height: 1.5;
+                border: 1px solid #1f2937;
+              "
+            ><code>static inline double bilinear_interpolate(double x, double y,
+    double Q11, double Q21, double Q12, double Q22) {
+  double fx1 = Q11 + (Q21 - Q11) * x;
+  double fx2 = Q12 + (Q22 - Q12) * x;
+  return fx1 + (fx2 - fx1) * y;
+}</code></pre>
+            <div style="font-size: 0.85em; color: #4b5563; margin-bottom: 12px">
+              Menggabungkan 4 tetangga (Q11, Q21, Q12, Q22) dengan fraksi jarak
+              x,y (fx, fy).
+            </div>
+
+            <h5 style="margin: 10px 0; color: #334155">
+              2) bilinear_resize_serial
+            </h5>
+            <pre
+              style="
+                background: #0f172a;
+                color: #e5e7eb;
+                padding: 12px;
+                border-radius: 8px;
+                overflow-x: auto;
+                font-size: 13px;
+                line-height: 1.5;
+                border: 1px solid #1f2937;
+              "
+            ><code>unsigned char** bilinear_resize_serial(
+    unsigned char** src, int src_h, int src_w,
+    int new_h, int new_w) {
+  unsigned char** dst = malloc(new_h * sizeof(unsigned char*));
+  for (int i = 0; i < new_h; i++) dst[i] = malloc(new_w * 3);
+
+  double rx = (double)(src_w - 1) / (new_w - 1);
+  double ry = (double)(src_h - 1) / (new_h - 1);
+
+  for (int i = 0; i < new_h; i++) {
+    for (int j = 0; j < new_w; j++) {
+      double sx = j * rx, sy = i * ry;
+      int x1 = (int)sx, y1 = (int)sy;
+      if (x1 >= src_w - 1) x1 = src_w - 2;
+      if (y1 >= src_h - 1) y1 = src_h - 2;
+      int x2 = x1 + 1, y2 = y1 + 1;
+      double dx = sx - x1, dy = sy - y1;
+      for (int c = 0; c < 3; c++) {
+        double Q11 = src[y1][x1 * 3 + c], Q21 = src[y1][x2 * 3 + c];
+        double Q12 = src[y2][x1 * 3 + c], Q22 = src[y2][x2 * 3 + c];
+        double val = bilinear_interpolate(dx, dy, Q11, Q21, Q12, Q22);
+        dst[i][j * 3 + c] = (unsigned char)(val + 0.5);
+      }
+    }
+  }
+  return dst;
+}</code></pre>
+            <div style="font-size: 0.85em; color: #4b5563; margin-bottom: 12px">
+              Loop baris-kolom: mapping dest→src, clamp batas, hitung dx/dy,
+              lalu blend per channel RGB menggunakan 4 tetangga.
+            </div>
+
+            <h5 style="margin: 10px 0; color: #334155">
+              3) bilinear_resize_parallel (OpenMP)
+            </h5>
+            <pre
+              style="
+                background: #0f172a;
+                color: #e5e7eb;
+                padding: 12px;
+                border-radius: 8px;
+                overflow-x: auto;
+                font-size: 13px;
+                line-height: 1.5;
+                border: 1px solid #1f2937;
+              "
+            ><code>unsigned char** bilinear_resize_parallel(
+    unsigned char** src, int src_h, int src_w,
+    int new_h, int new_w, int threads) {
+  unsigned char** dst = malloc(new_h * sizeof(unsigned char*));
+  for (int i = 0; i < new_h; i++) dst[i] = malloc(new_w * 3);
+
+  double rx = (double)(src_w - 1) / (new_w - 1);
+  double ry = (double)(src_h - 1) / (new_h - 1);
+
+  omp_set_num_threads(threads);
+  #pragma omp parallel for collapse(2) schedule(dynamic)
+  for (int i = 0; i < new_h; i++) {
+    for (int j = 0; j < new_w; j++) {
+      double sx = j * rx, sy = i * ry;
+      int x1 = (int)sx, y1 = (int)sy;
+      if (x1 >= src_w - 1) x1 = src_w - 2;
+      if (y1 >= src_h - 1) y1 = src_h - 2;
+      int x2 = x1 + 1, y2 = y1 + 1;
+      double dx = sx - x1, dy = sy - y1;
+      for (int c = 0; c < 3; c++) {
+        double Q11 = src[y1][x1 * 3 + c], Q21 = src[y1][x2 * 3 + c];
+        double Q12 = src[y2][x1 * 3 + c], Q22 = src[y2][x2 * 3 + c];
+        double val = bilinear_interpolate(dx, dy, Q11, Q21, Q12, Q22);
+        dst[i][j * 3 + c] = (unsigned char)(val + 0.5);
+      }
+    }
+  }
+  return dst;
+}</code></pre>
+            <div style="font-size: 0.85em; color: #4b5563">
+              Sama seperti serial, tetapi loop baris-kolom di-parallel-kan
+              dengan OpenMP (<code>collapse(2)</code>,
+              <code>schedule(dynamic)</code>) dan jumlah thread diatur via
+              <code>omp_set_num_threads</code>.
+            </div>
+          </div>
+        </details>
+
         <div
           style="
             margin-top: 25px;
@@ -690,6 +941,18 @@
 
     <script>
       // ==================== FIBONACCI dengan C BACKEND ====================
+      function formatSpeedup(speed) {
+        const val = Number(speed);
+        if (!isFinite(val) || val <= 0) {
+          return { text: "slower", isFaster: false };
+        }
+        if (val >= 1) {
+          return { text: `${val.toFixed(2)}x faster`, isFaster: true };
+        }
+        const slower = (1 / val).toFixed(2);
+        return { text: `${slower}x slower`, isFaster: false };
+      }
+
       async function calculateFibonacci() {
         const n = parseInt(document.getElementById("fibN").value);
         const mode = "both";
@@ -771,41 +1034,11 @@
           </div>
         `;
 
-        // OpenMP Serial (if available)
-        if (data.openmp_serial) {
-          const ompOverhead = Math.max(0, data.openmp_serial.overhead);
-          html += `
-            <div class="result-item">
-              <div class="result-label">2. OpenMP Serial (No Tasking) <span class="openmp-badge">OpenMP</span></div>
-              <div class="result-details">
-                <div class="detail-item">
-                  <div class="detail-label">Result</div>
-                  <div class="detail-value">${data.openmp_serial.result}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Time</div>
-                  <div class="detail-value">${(
-                    data.openmp_serial.time * 1000
-                  ).toFixed(3)} ms</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Speedup</div>
-                  <div class="detail-value">${data.openmp_serial.speedup}x</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Overhead</div>
-                  <div class="detail-value">${ompOverhead.toFixed(2)}%</div>
-                </div>
-              </div>
-            </div>
-          `;
-        }
-
         // OpenMP Parallel (if available)
         if (data.openmp_parallel) {
           html += `
             <div class="result-item" style="border-left: 4px solid #28a745;">
-              <div class="result-label">3. OpenMP Parallel (Task-Based) <span class="openmp-badge">OpenMP</span></div>
+              <div class="result-label">2. OpenMP Parallel (Task-Based) <span class="openmp-badge">OpenMP</span></div>
               <div class="result-details">
                 <div class="detail-item">
                   <div class="detail-label">Result</div>
@@ -819,9 +1052,13 @@
                 </div>
                 <div class="detail-item">
                   <div class="detail-label">Speedup</div>
-                  <div class="detail-value" style="color: #28a745;">${
-                    data.openmp_parallel.speedup
-                  }x ⚡</div>
+                  <div class="detail-value" style="color:${
+                    formatSpeedup(data.openmp_parallel.speedup).isFaster
+                      ? "#28a745"
+                      : "#dc3545"
+                  };">${formatSpeedup(data.openmp_parallel.speedup).text}${
+            formatSpeedup(data.openmp_parallel.speedup).isFaster ? " ⚡" : ""
+          }</div>
                 </div>
                 <div class="detail-item">
                   <div class="detail-label">Efficiency</div>
@@ -848,41 +1085,11 @@
           `;
         }
 
-        // Cilk Serial (if available)
-        if (data.cilk_serial) {
-          const cilkOverhead = Math.max(0, data.cilk_serial.overhead);
-          html += `
-            <div class="result-item">
-              <div class="result-label">4. Cilk Serial (No Spawn) <span class="cilk-badge">Cilk</span></div>
-              <div class="result-details">
-                <div class="detail-item">
-                  <div class="detail-label">Result</div>
-                  <div class="detail-value">${data.cilk_serial.result}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Time</div>
-                  <div class="detail-value">${(
-                    data.cilk_serial.time * 1000
-                  ).toFixed(3)} ms</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Speedup</div>
-                  <div class="detail-value">${data.cilk_serial.speedup}x</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Overhead</div>
-                  <div class="detail-value">${cilkOverhead.toFixed(2)}%</div>
-                </div>
-              </div>
-            </div>
-          `;
-        }
-
         // Cilk Parallel (if available)
         if (data.cilk_parallel) {
           html += `
             <div class="result-item" style="border-left: 4px solid #ff6b6b;">
-              <div class="result-label">5. Cilk Parallel (Work-Stealing) <span class="cilk-badge">Cilk</span></div>
+              <div class="result-label">3. Cilk Parallel (Work-Stealing) <span class="cilk-badge">Cilk</span></div>
               <div class="result-details">
                 <div class="detail-item">
                   <div class="detail-label">Result</div>
@@ -896,9 +1103,13 @@
                 </div>
                 <div class="detail-item">
                   <div class="detail-label">Speedup</div>
-                  <div class="detail-value" style="color: #ff6b6b;">${
-                    data.cilk_parallel.speedup
-                  }x ⚡</div>
+                  <div class="detail-value" style="color:${
+                    formatSpeedup(data.cilk_parallel.speedup).isFaster
+                      ? "#ff6b6b"
+                      : "#dc3545"
+                  };">${formatSpeedup(data.cilk_parallel.speedup).text}${
+            formatSpeedup(data.cilk_parallel.speedup).isFaster ? " ⚡" : ""
+          }</div>
                 </div>
                 <div class="detail-item">
                   <div class="detail-label">Cutoff</div>
@@ -916,26 +1127,47 @@
         }
 
         // Summary
-        const fastest = data.cilk_parallel || data.openmp_parallel;
-        if (fastest) {
-          const improvement = (
-            ((data.sequential.time - fastest.time) / data.sequential.time) *
-            100
-          ).toFixed(1);
-          const fastestName = data.cilk_parallel
-            ? "Cilk Parallel"
-            : "OpenMP Parallel";
+        const candidates = [];
+        if (data.openmp_parallel) {
+          candidates.push({
+            name: "OpenMP Parallel",
+            time: data.openmp_parallel.time,
+            speedup: data.openmp_parallel.speedup,
+            result: data.openmp_parallel.result,
+          });
+        }
+        if (data.cilk_parallel) {
+          candidates.push({
+            name: "Cilk Parallel",
+            time: data.cilk_parallel.time,
+            speedup: data.cilk_parallel.speedup,
+            result: data.cilk_parallel.result,
+          });
+        }
+        if (candidates.length > 0) {
+          candidates.sort((a, b) => a.time - b.time);
+          const best = candidates[0];
+          const improvementRaw =
+            ((data.sequential.time - best.time) / data.sequential.time) * 100;
+          const improvement = improvementRaw.toFixed(1);
+          const speedInfo = formatSpeedup(best.speedup);
           html += `
-            <div class="info-box" style="background: #d4edda; border-left-color: #28a745; margin-top: 15px;">
-              <strong style="color: #155724;">📊 Performance Summary:</strong><br>
-              ${fastestName} is <strong>${
-            fastest.speedup
-          }x faster</strong> than Sequential!<br>
-              Time saved: <strong>${improvement}%</strong> (${(
-            (data.sequential.time - fastest.time) *
+            <div class="info-box" style="background: ${
+              speedInfo.isFaster ? "#d4edda" : "#f8d7da"
+            }; border-left-color: ${
+            speedInfo.isFaster ? "#28a745" : "#dc3545"
+          }; margin-top: 15px;">
+              <strong style="color: ${
+                speedInfo.isFaster ? "#155724" : "#721c24"
+              };">📊 Performance Summary:</strong><br>
+              ${best.name} is <strong>${
+            speedInfo.text
+          }</strong> than Sequential.<br>
+              Time delta: <strong>${improvement}%</strong> (${(
+            (data.sequential.time - best.time) *
             1000
           ).toFixed(2)} ms)<br>
-              Computed Fibonacci(${data.n}) = <strong>${fastest.result}</strong>
+              Computed Fibonacci(${data.n}) = <strong>${best.result}</strong>
             </div>
           `;
         }
@@ -1122,9 +1354,9 @@
                   </div>
                   <div class="detail-item">
                     <div class="detail-label">Speedup</div>
-                    <div class="detail-value" style="color: #28a745;">${speedup.toFixed(
-                      2
-                    )}x</div>
+                    <div class="detail-value" style="color:${
+                      formatSpeedup(speedup).isFaster ? "#28a745" : "#dc3545"
+                    };">${formatSpeedup(speedup).text}</div>
                   </div>
                   <div class="detail-item">
                     <div class="detail-label">Efficiency</div>
@@ -1186,9 +1418,9 @@
           console.error("Failed to load serial image:", serialFile);
           serialTimeEl.textContent = "❌ Image not found";
         };
-        serialTimeEl.textContent = `Serial: ${(data.serial_time * 1000).toFixed(
-          2
-        )} ms`;
+        serialTimeEl.textContent = `Serial: ${data.new_width}×${
+          data.new_height
+        } px, ${(data.serial_time * 1000).toFixed(2)} ms`;
 
         // Load parallel result (8 threads)
         const parallelFile =
@@ -1202,7 +1434,9 @@
         if (data.parallel_results && data.parallel_results.length > 0) {
           const parallelResult =
             data.parallel_results[data.parallel_results.length - 1]; // Get 8-thread result
-          parallelTimeEl.textContent = `Parallel (8T): ${(
+          parallelTimeEl.textContent = `Parallel (${
+            parallelResult.threads
+          }T): ${data.new_width}×${data.new_height} px, ${(
             parallelResult.time * 1000
           ).toFixed(2)} ms`;
         }

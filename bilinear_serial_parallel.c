@@ -282,12 +282,19 @@ int main(int argc, char* argv[])
     printf("  Input: Real PNG Image (RGB COLOR)\n");
     printf("=================================================================\n\n");
 
-    // Default filename
+    // Default filename dan scaling
     const char* input_file = "gantrycrane.png";
+    double scale = 2.0;
     
-    // Jika ada argument, gunakan sebagai filename
+    // Argumen: file [scale]
     if (argc > 1) {
         input_file = argv[1];
+    }
+    if (argc > 2) {
+        double tmp = atof(argv[2]);
+        if (tmp > 0.1 && tmp <= 10.0) {
+            scale = tmp;
+        }
     }
 
     // Baca PNG image
@@ -303,13 +310,15 @@ int main(int argc, char* argv[])
     int src_h = src_img->height;
     int src_w = src_img->width;
     
-    // Scaling parameters
-    int new_h = src_h * 2;  // 2x scaling
-    int new_w = src_w * 2;
+    // Scaling parameters (gunakan faktor dinamis)
+    int new_h = (int)(src_h * scale + 0.5);
+    int new_w = (int)(src_w * scale + 0.5);
+    if (new_h < 1) new_h = 1;
+    if (new_w < 1) new_w = 1;
 
     printf("Ukuran gambar sumber: %dx%d (RGB)\n", src_h, src_w);
     printf("Ukuran gambar hasil: %dx%d (RGB)\n", new_h, new_w);
-    printf("Faktor scaling: 2.0x\n\n");
+    printf("Faktor scaling: %.2fx\n\n", scale);
 
     // Convert to 2D array untuk processing
     unsigned char** src = image_to_2d(src_img->data, src_h, src_w);
@@ -423,4 +432,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-

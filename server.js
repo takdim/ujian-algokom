@@ -199,7 +199,7 @@ app.get("/api/bilinear", (req, res) => {
   const bilinearExec = path.join(__dirname, "bilinear");
 
   // Jalankan program C dengan custom filename
-  const command = `"${bilinearExec}" "${imageFile}"`;
+  const command = `"${bilinearExec}" "${imageFile}" ${scaling}`;
 
   exec(command, { timeout: 60000, cwd: __dirname }, (error, stdout, stderr) => {
     if (error) {

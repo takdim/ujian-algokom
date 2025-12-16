@@ -44,10 +44,6 @@ int fibonacci_openmp_parallel(int n) {
     }
     return result;
 }
-
-int fibonacci_openmp_serial(int n) {
-    return fib_sequential(n);
-}
 #endif
 
 // ==================== OpenCilk Implementation ====================
@@ -72,10 +68,6 @@ int fib_cilk_task(int n) {
 
 int fibonacci_cilk_parallel(int n) {
     return fib_cilk_task(n);
-}
-
-int fib_cilk_serial(int n) {
-    return fib_sequential(n);
 }
 #endif
 
@@ -145,14 +137,6 @@ int main(int argc, char *argv[]) {
     end = get_wall_time();
     time_taken = normalize_time(end - start);
     
-    printf("  \"openmp_serial\": {\n");
-    printf("    \"name\": \"OpenMP Serial\",\n");
-    printf("    \"result\": %d,\n", result);
-    printf("    \"time\": %.6f,\n", time_taken);
-    printf("    \"speedup\": %.2f,\n", safe_ratio(baseline_time, time_taken));
-    printf("    \"overhead\": %.2f\n", ((time_taken - baseline_time) / baseline_time) * 100);
-    printf("  },\n");
-    
     start = get_wall_time();
     result = fibonacci_openmp_parallel(N);
     end = get_wall_time();
@@ -175,25 +159,6 @@ int main(int argc, char *argv[]) {
 #ifdef USE_CILK
     printf(",\n");
     printf("  \"cilk_available\": true,\n");
-    
-    start = get_wall_time();
-    result = fib_cilk_serial(N);
-    end = get_wall_time();
-    time_taken = normalize_time(end - start);
-    if (time_taken < 1e-6) {
-        time_taken = baseline_time; // fallback to baseline to avoid absurd speedup
-    }
-    
-    double cilk_serial_speedup = safe_ratio(baseline_time, time_taken);
-    double cilk_serial_overhead = ((time_taken - baseline_time) / baseline_time) * 100;
-    
-    printf("  \"cilk_serial\": {\n");
-    printf("    \"name\": \"Cilk Serial\",\n");
-    printf("    \"result\": %d,\n", result);
-    printf("    \"time\": %.6f,\n", time_taken);
-    printf("    \"speedup\": %.2f,\n", cilk_serial_speedup);
-    printf("    \"overhead\": %.2f\n", cilk_serial_overhead);
-    printf("  },\n");
     
     start = get_wall_time();
     result = fibonacci_cilk_parallel(N);

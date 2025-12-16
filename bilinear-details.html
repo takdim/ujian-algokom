@@ -389,6 +389,24 @@
               <code>y0 = floor(srcY), y1 = ceil(srcY)</code><br />
               Ambil f00 (x0,y0), f10 (x1,y0), f01 (x0,y1), f11 (x1,y1).
             </div>
+            <div
+              class="step"
+              style="background: #eef2ff; border-left-color: #667eea"
+            >
+              <strong>Gambaran singkat posisi (x1=floor, x2=ceil, y1=floor, y2=ceil):</strong>
+              <pre style="background:#0f172a;color:#e5e7eb;padding:10px;border-radius:6px;overflow-x:auto;">Q11 = (x1, y1)   Q21 = (x2, y1)
+   +-------------+
+   |             |
+   |     ●       |   ← (x, y)
+   |             |
+   +-------------+
+Q12 = (x1, y2)   Q22 = (x2, y2)</pre>
+              • <em>floor, floor</em> (Q11) = kiri-atas (integer di kiri dan atas koordinat).<br />
+              • <em>ceil, floor</em> (Q21) = kanan-atas (x ke kanan, y tetap atas).<br />
+              • <em>floor, ceil</em> (Q12) = kiri-bawah (x tetap kiri, y ke bawah).<br />
+              • <em>ceil, ceil</em> (Q22) = kanan-bawah (x ke kanan, y ke bawah).<br />
+              Keempatnya membentuk kotak 2×2 yang mengurung titik (x,y) non-integer.
+            </div>
           </div>
         </div>
 
@@ -510,31 +528,54 @@
       <!-- UPSCALING FOCUS -->
       <div class="content-card">
         <div class="section-header">
-          <div class="section-title">🎨 Bilinear Interpolation untuk Image Upscaling</div>
+          <div class="section-title">
+            🎨 Bilinear Interpolation untuk Image Upscaling
+          </div>
           <div class="badge">4 Tetangga Terdekat</div>
         </div>
 
         <div class="section">
           <div class="info-box blue">
-            <strong>Inti:</strong> Setiap pixel baru dihitung dari <strong>4 pixel terdekat</strong> di gambar asli (Q11, Q21, Q12, Q22). Bobot ditentukan oleh jarak fraksional (fx, fy) dari koordinat hasil mapping dest→src.
+            <strong>Inti:</strong> Setiap pixel baru dihitung dari
+            <strong>4 pixel terdekat</strong> di gambar asli (Q11, Q21, Q12,
+            Q22). Bobot ditentukan oleh jarak fraksional (fx, fy) dari koordinat
+            hasil mapping dest→src.
           </div>
         </div>
 
         <div class="section">
           <h3>🔁 Pipeline Upscaling (dipakai di demo/index.html)</h3>
           <ul style="line-height: 1.8; color: #333">
-            <li>Mapping: <code>srcX = destX × (srcW/destW)</code>, <code>srcY = destY × (srcH/destH)</code>.</li>
-            <li>Ambil 4 tetangga: Q11 (floor, floor), Q21 (ceil, floor), Q12 (floor, ceil), Q22 (ceil, ceil).</li>
-            <li>Hitung fraksi: <code>fx = srcX - floor(srcX)</code>, <code>fy = srcY - floor(srcY)</code>.</li>
-            <li>Blend bilinear: (1-fx)(1-fy)Q11 + fx(1-fy)Q21 + (1-fx)fy Q12 + fx fy Q22.</li>
+            <li>
+              Mapping: <code>srcX = destX × (srcW/destW)</code>,
+              <code>srcY = destY × (srcH/destH)</code>.
+            </li>
+            <li>
+              Ambil 4 tetangga: Q11 (floor, floor), Q21 (ceil, floor), Q12
+              (floor, ceil), Q22 (ceil, ceil).
+            </li>
+            <li>
+              Hitung fraksi: <code>fx = srcX - floor(srcX)</code>,
+              <code>fy = srcY - floor(srcY)</code>.
+            </li>
+            <li>
+              Blend bilinear: (1-fx)(1-fy)Q11 + fx(1-fy)Q21 + (1-fx)fy Q12 + fx
+              fy Q22.
+            </li>
           </ul>
         </div>
 
         <div class="section">
           <h3>⚡ Kenapa Dipilih untuk Demo?</h3>
           <ul style="line-height: 1.8; color: #333">
-            <li>Hasil lebih halus dibanding nearest neighbor; cukup ringan dibanding bicubic.</li>
-            <li>Kompleksitas O(1) per pixel, cocok untuk real-time atau batch ringan.</li>
+            <li>
+              Hasil lebih halus dibanding nearest neighbor; cukup ringan
+              dibanding bicubic.
+            </li>
+            <li>
+              Kompleksitas O(1) per pixel, cocok untuk real-time atau batch
+              ringan.
+            </li>
             <li>Memory-bound: speedup paralel dibatasi bandwidth memori.</li>
             <li>Mudah diparalelisasi dengan OpenMP (tiap pixel independen).</li>
           </ul>
